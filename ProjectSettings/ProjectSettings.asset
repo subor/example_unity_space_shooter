@@ -599,9 +599,9 @@ PlayerSettings:
     UNet: 1
   facebookSdkVersion: 7.9.4
   apiCompatibilityLevel: 2
-  cloudProjectId: accf5407-2783-40ad-9f4a-981f394f5d43
+  cloudProjectId: 79b28b35-ff1c-40af-9b2f-9b1255dafe1c
   projectName: SpaceShooter
-  organizationId: bm-3540314
+  organizationId: bokruyi
   cloudEnabled: 0
   enableNativePlatformBackendsForNewInputSystem: 0
   disableOldInputManagerSupport: 0

@@ -35,6 +35,8 @@ public class RuyiNet : MonoBehaviour
         };
 
         mSDK = RuyiSDK.CreateInstance(mSDKContext);
+
+        //DontDestroyOnLoad(this);
     }
 
     private void Update()
