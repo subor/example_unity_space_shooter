@@ -139,5 +139,11 @@ public class Done_PlayerController : NetworkBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        var gameController = FindObjectOfType<Done_GameController>();
+        gameController.UnregisterPlayer(this);
+    }
+
     private float nextFire;
 }

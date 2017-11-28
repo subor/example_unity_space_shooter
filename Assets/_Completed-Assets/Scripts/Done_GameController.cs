@@ -42,6 +42,12 @@ public class Done_GameController : MonoBehaviour
         UpdateScore();
     }
 
+    public void UnregisterPlayer(Done_PlayerController player)
+    {
+        PlayerControllers.Remove(player);
+        UpdateScore();
+    }
+
     void Start ()
     {
         level = 1;
@@ -101,12 +107,13 @@ public class Done_GameController : MonoBehaviour
 	}
 	
 	public void UpdateScore()
-	{
-        if (RuyiNet.IsRuyiNetAvailable)
+    {
+        for (int i = 0; i < 4; i++)
         {
-            for (int i = 0; i < 4; i++)
+            if (i < PlayerControllers.Count)
             {
-                if (RuyiNet.CurrentPlayers[i] != null)
+                if (RuyiNet.IsRuyiNetAvailable &&
+                    RuyiNet.CurrentPlayers[i] != null)
                 {
                     scoreText[i].text =
                         "<b>" + RuyiNet.CurrentPlayers[i].profileName + "</b>\n" +
@@ -115,17 +122,12 @@ public class Done_GameController : MonoBehaviour
                 }
                 else
                 {
-                    scoreText[i].text = "";
+                    scoreText[i].text =
+                        "Score: " + PlayerControllers[i].Score +
+                        " Strength: " + PlayerControllers[i].Strength;
                 }
             }
-        }
-        else
-        {
-            scoreText[0].text = 
-                "Score: " + PlayerControllers[0].Score +
-                " Strength: " + PlayerControllers[0].Strength;
-
-            for (int i = 1; i < 4; ++i)
+            else
             {
                 scoreText[i].text = "";
             }
