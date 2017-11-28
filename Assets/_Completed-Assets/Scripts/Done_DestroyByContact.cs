@@ -34,7 +34,7 @@ public class Done_DestroyByContact : MonoBehaviour
         if (other.tag == "Shot")
         {
             var mover = other.gameObject.GetComponent<Done_Mover>();
-            if (health <= gameController.currentStrength[mover.Index])
+            if (health <= mover.Strength)
             {
                 gameController.AddScore(mover.Index, scoreValue);
                 health = 0;
@@ -53,14 +53,12 @@ public class Done_DestroyByContact : MonoBehaviour
         if (other.tag == "Player")
         {
             var player = other.gameObject.GetComponent<Done_PlayerController>();
-            var index = player.PlayerIndex - 1;
-
             Instantiate(playerExplosion, other.transform.position, other.transform.rotation);
-            gameController.currentStrength[index]--;
+            player.TakeDamage();
             gameController.UpdateScore();
             health = 0;
 
-            if (gameController.currentStrength[index] <= 0)
+            if (player.Strength <= 0)
             {
                 Destroy(other.gameObject);
                 gameController.CheckGameOver();

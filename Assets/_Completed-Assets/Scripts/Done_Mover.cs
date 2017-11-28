@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class Done_Mover : MonoBehaviour
 {
 	public float speed;
     public int Index;
+    public int Strength;
 
 	void Start ()
 	{

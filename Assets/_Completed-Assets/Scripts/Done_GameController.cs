@@ -1,13 +1,12 @@
 ﻿using Ruyi;
-using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class Done_GameController : MonoBehaviour
 {
-    public GameObject[] players;
     public GameObject[] hazards;
 	public Vector3 spawnValues;
 	public int hazardCount;
@@ -21,22 +20,27 @@ public class Done_GameController : MonoBehaviour
     public GUIText levelText;
 
     public int level = 1;
-    public int[] currentStrength = new int[4] { 1, 1, 1, 1 };
-
-    [Serializable]
-    private class Game
-    {
-        public int strength = 1;
-    }
-
-    private Game[] currentGame = new Game[4];
+    private List<Done_PlayerController> PlayerControllers = new List<Done_PlayerController>();
 
     private bool gameOver;
 	private bool restart;
-	private int[] score = new int[4] { 0, 0, 0, 0 };
     private int kills;
 
     private const string SAVEGAME_LOCATION = "savedData.gd";
+    private readonly Color[] playerColors = {
+        Color.red,
+        Color.green,
+        Color.blue,
+        Color.yellow
+    };
+
+    public void RegisterPlayer(Done_PlayerController player)
+    {
+        player.GetComponent<MeshRenderer>().materials[0].color = playerColors[PlayerControllers.Count % 4];
+        PlayerControllers.Add(player);
+        OnRestoreData(null);
+        UpdateScore();
+    }
 
     void Start ()
     {
@@ -46,24 +50,12 @@ public class Done_GameController : MonoBehaviour
         restart = false;
         restartText.text = "";
         gameOverText.text = "";
-        score = new int[4] { 0, 0, 0, 0 };
         kills = 0;
-
-        for (int i = 0; i < 4; ++i)
-        {
-            players[i].SetActive(false);
-        }
 
         if (RuyiNet != null &&
             RuyiNet.IsRuyiNetAvailable)
         {
             RuyiNet.Initialise(OnRuyiNetInitialised);
-        }
-        else
-        {
-            players[0].SetActive(true);
-            OnRestoreData(null);
-            UpdateScore();
         }
 
 		StartCoroutine (SpawnWaves ());
@@ -102,7 +94,7 @@ public class Done_GameController : MonoBehaviour
 	
 	public void AddScore (int index, int newScoreValue)
 	{
-		score[index] += newScoreValue * level * level;
+        PlayerControllers[index].AddScore(newScoreValue * level * level);
         kills += 1;
         level = (kills / 10) + 1;
         UpdateScore();
@@ -118,8 +110,8 @@ public class Done_GameController : MonoBehaviour
                 {
                     scoreText[i].text =
                         "<b>" + RuyiNet.CurrentPlayers[i].profileName + "</b>\n" +
-                        "Score: " + score[i] +
-                        " Strength: " + currentStrength[i];
+                        "Score: " + PlayerControllers[i].Score +
+                        " Strength: " + PlayerControllers[i].Strength;
                 }
                 else
                 {
@@ -130,8 +122,8 @@ public class Done_GameController : MonoBehaviour
         else
         {
             scoreText[0].text = 
-                "Score: " + score[0] +
-                " Strength: " + currentStrength[0];
+                "Score: " + PlayerControllers[0].Score +
+                " Strength: " + PlayerControllers[0].Strength;
 
             for (int i = 1; i < 4; ++i)
             {
@@ -145,9 +137,10 @@ public class Done_GameController : MonoBehaviour
     public bool CheckGameOver()
     {
         Debug.Log("CheckGameOver");
-        foreach (var i in currentStrength)
+        foreach (var i in PlayerControllers)
         {
-            if (i > 0)
+            if (i != null &&
+                i.Strength > 0)
             {
                 return false;
             }
@@ -172,32 +165,30 @@ public class Done_GameController : MonoBehaviour
                 if (profile != null)
                 {
                     Debug.Log("Current Game: " + index);
-                    if (level > currentGame[index].strength)
-                    {
-                        currentGame[index].strength++;
-                    }
+                    PlayerControllers[index].ApplyProgression(level);
 
                     var savePath = Path.Combine(profile.profileName, SAVEGAME_LOCATION);
-                    SaveLoad.Save(currentGame[index], savePath);
+                    SaveLoad.Save(PlayerControllers[index].CurrentGame, savePath);
 
                     //if (RuyiNet.CloudService != null)
                     //{
                     //    RuyiNet.CloudService.BackupData(index, Application.persistentDataPath, null);
                     //}
 
+                    var score = PlayerControllers[index].Score;
                     if (RuyiNet.LeaderboardService != null)
                     {
-                        RuyiNet.LeaderboardService.PostScoreToLeaderboard(index, "Shooter", score[index], null);
+                        RuyiNet.LeaderboardService.PostScoreToLeaderboard(index, "Shooter", score, null);
                     }
 
                     if (RuyiNet.MatchmakingService != null)
                     {
-                        if (score[index] <= 500)
+                        if (score <= 500)
                         {
                             RuyiNet.MatchmakingService.DecrementPlayerRating(index, 5, null);
                         }
 
-                        if (score[index] >= 1000)
+                        if (score >= 1000)
                         {
                             RuyiNet.MatchmakingService.IncrementPlayerRating(index, 5, null);
                         }
@@ -208,12 +199,8 @@ public class Done_GameController : MonoBehaviour
         }
         else
         {
-            if (level > currentGame[0].strength)
-            {
-                currentGame[0].strength++;
-            }
-
-            SaveLoad.Save(currentGame[0], SAVEGAME_LOCATION);
+            PlayerControllers[0].ApplyProgression(level);
+            SaveLoad.Save(PlayerControllers[0].CurrentGame, SAVEGAME_LOCATION);
         }
     }
 
@@ -242,8 +229,6 @@ public class Done_GameController : MonoBehaviour
                     }
                 }
 
-                players[index].SetActive(true);
-
                 //if (RuyiNet.CloudService != null)
                 //{
                 //    RuyiNet.CloudService.RestoreData(0, Application.persistentDataPath, OnRestoreData);
@@ -262,7 +247,6 @@ public class Done_GameController : MonoBehaviour
     private void OnRestoreData(RuyiNetResponse response)
     {
         Debug.Log("Restore Data");
-        currentStrength = new int[4];
 
         if (RuyiNet != null &&
             RuyiNet.IsRuyiNetAvailable)
@@ -273,31 +257,13 @@ public class Done_GameController : MonoBehaviour
                 {
                     Debug.Log("RD Profile " + index);
                     var savePath = Path.Combine(profile.profileName, SAVEGAME_LOCATION);
-                    try
-                    {
-                        currentGame[index] = SaveLoad.Load<Game>(savePath);
-                    }
-                    catch (FileNotFoundException)
-                    {
-                        currentGame[index] = new Game();
-                    }
-
-                    currentStrength[index] = currentGame[index].strength;
+                    PlayerControllers[index].LoadGame(savePath);
                 }
             });
         }
         else
         {
-            try
-            {
-                currentGame[0] = SaveLoad.Load<Game>(SAVEGAME_LOCATION);
-            }
-            catch (FileNotFoundException)
-            {
-                currentGame[0] = new Game();
-            }
-
-            currentStrength[0] = currentGame[0].strength;
+            PlayerControllers[0].LoadGame(SAVEGAME_LOCATION);
         }
     }
 }
