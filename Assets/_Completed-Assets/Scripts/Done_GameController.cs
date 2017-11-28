@@ -3,9 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 
-public class Done_GameController : MonoBehaviour
+public class Done_GameController : NetworkBehaviour
 {
     public GameObject[] hazards;
 	public Vector3 spawnValues;
@@ -85,7 +86,8 @@ public class Done_GameController : MonoBehaviour
 				GameObject hazard = hazards [UnityEngine.Random.Range (0, hazards.Length)];
 				Vector3 spawnPosition = new Vector3 (UnityEngine.Random.Range (-spawnValues.x, spawnValues.x), spawnValues.y, spawnValues.z);
 				Quaternion spawnRotation = Quaternion.identity;
-				Instantiate (hazard, spawnPosition, spawnRotation);
+				var spawned = Instantiate (hazard, spawnPosition, spawnRotation);
+                NetworkServer.Spawn(spawned);
 				yield return new WaitForSeconds (spawnWait);
 			}
 			yield return new WaitForSeconds (waveWait + (spawnWait * (level - 0)));
