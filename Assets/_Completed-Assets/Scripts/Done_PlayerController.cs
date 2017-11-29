@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Networking;
 
 [System.Serializable]
@@ -21,75 +19,45 @@ public class Done_PlayerController : NetworkBehaviour
 
     public int PlayerIndex;
 
-    [SyncVar]
-    public int Strength;
-
-    [SyncVar]
-    public int Score;
-
-    public void TakeDamage()
-    {
-        if (isServer)
-        {
-            Strength = Math.Max(Strength - 1, 0);
-        }
-    }
-
-    public void AddScore(int score)
-    {
-        if (isServer)
-        {
-            Score += score;
-        }
-    }
-
-    public void ResetScore()
-    {
-        if (isServer)
-        {
-            Score = 0;
-        }
-    }
-
-    public void ApplyProgression(int level)
-    {
-        if (level > CurrentGame.Strength)
-        {
-            ++CurrentGame.Strength;
-        }
-    }
-
-    public void LoadGame(string savePath)
-    {
-        try
-        {
-            CurrentGame = SaveLoad.Load<Game>(savePath);
-        }
-        catch (FileNotFoundException)
-        {
-            CurrentGame = new Game();
-        }
-
-        if (isServer)
-        {
-            Strength = CurrentGame.Strength;
-        }
-    }
-
-    [Serializable]
-    public class Game
-    {
-        public int Strength = 1;
-    }
-
-    public Game CurrentGame { get; private set; }
-
     private void Start()
     {
-        var gameController = FindObjectOfType<Done_GameController>();
-        gameController.RegisterPlayer(this);
+        var ruyiProfileId = "";
+        var ruyiProfileName = "";
+        var ruyiNet = FindObjectOfType<RuyiNet>();
+        if (ruyiNet != null &&
+            ruyiNet.IsRuyiNetAvailable)
+        {
+            var activePlayer = ruyiNet.ActivePlayer;
+            if (activePlayer != null)
+            {
+                ruyiProfileId = activePlayer.profileId;
+                ruyiProfileName = activePlayer.profileName;
+            }
+        }
 
-        GetComponent<MeshRenderer>().materials[0].color = Color.red;
+        if (isLocalPlayer)
+        {
+            CmdRegister(ruyiProfileId, ruyiProfileName);
+        }
+    }
+
+    [Command]
+    private void CmdRegister(string ruyiProfileId, string ruyiProfileName)
+    {
+        var gameController = FindObjectOfType<Done_GameController>();
+        gameController.RegisterPlayer(netId, ruyiProfileId, ruyiProfileName);
+    }
+
+    [Command]
+    private void CmdSpawnBullet()
+    {
+        var bullet = Instantiate(shot, shotSpawn.position, shotSpawn.rotation);
+        var mover = bullet.GetComponent<Done_Mover>();
+        mover.PlayerNetId = netId;
+
+        GetComponent<AudioSource>().Play();
+
+        NetworkServer.Spawn(bullet);
     }
 
     private void Update ()
@@ -104,19 +72,6 @@ public class Done_PlayerController : NetworkBehaviour
             }
         }
 	}
-
-    [Command]
-    private void CmdSpawnBullet()
-    {
-        var bullet = Instantiate(shot, shotSpawn.position, shotSpawn.rotation);
-        var mover = bullet.GetComponent<Done_Mover>();
-        mover.Index = PlayerIndex - 1;
-        mover.Strength = Strength;
-
-        GetComponent<AudioSource>().Play();
-
-        NetworkServer.Spawn(bullet);
-    }
 
 	private void FixedUpdate ()
 	{
@@ -142,7 +97,10 @@ public class Done_PlayerController : NetworkBehaviour
     private void OnDestroy()
     {
         var gameController = FindObjectOfType<Done_GameController>();
-        gameController.UnregisterPlayer(this);
+        if (gameController != null)
+        {
+            gameController.UnregisterPlayer(this);
+        }
     }
 
     private float nextFire;

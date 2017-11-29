@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
+using UnityEngine.Networking;
 
 public class Done_Mover : MonoBehaviour
 {
-	public float speed;
-    public int Index;
-    public int Strength;
+    public NetworkInstanceId PlayerNetId;
+    public float speed;
 
 	void Start ()
 	{

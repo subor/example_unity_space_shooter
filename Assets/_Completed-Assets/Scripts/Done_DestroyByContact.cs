@@ -10,21 +10,19 @@ public class Done_DestroyByContact : NetworkBehaviour
     private int health;
 
 	void Start ()
-	{
-		GameObject gameControllerObject = GameObject.FindGameObjectWithTag ("GameController");
-		if (gameControllerObject != null)
+    {
+        gameController = FindObjectOfType<Done_GameController>();
+        if (gameController != null)
 		{
-			gameController = gameControllerObject.GetComponent <Done_GameController>();
-
-            health = gameController.level;
+            health = gameController.Level;
         }
-
-		if (gameController == null)
+        else
 		{
 			Debug.Log ("Cannot find 'GameController' script");
 		}
 	}
 
+    [Server]
 	void OnTriggerEnter (Collider other)
 	{
 		if (other.tag == "Boundary" || other.tag == "Enemy")
@@ -35,9 +33,9 @@ public class Done_DestroyByContact : NetworkBehaviour
         if (other.tag == "Shot")
         {
             var mover = other.gameObject.GetComponent<Done_Mover>();
-            if (health <= mover.Strength)
+            if (health <= gameController.GetPlayerStrength(mover.PlayerNetId))
             {
-                gameController.AddScore(mover.Index, scoreValue);
+                gameController.AddScore(mover.PlayerNetId, scoreValue);
                 health = 0;
             }
             else
@@ -58,11 +56,10 @@ public class Done_DestroyByContact : NetworkBehaviour
             NetworkServer.Spawn(boom);
 
             var player = other.gameObject.GetComponent<Done_PlayerController>();
-            player.TakeDamage();
-            gameController.UpdateScore();
+            gameController.DamagePlayer(player.netId);
             health = 0;
 
-            if (player.Strength <= 0)
+            if (gameController.GetPlayerStrength(player.netId) <= 0)
             {
                 Destroy(other.gameObject);
                 gameController.CheckGameOver();
