@@ -8,13 +8,6 @@ using UnityEngine.SceneManagement;
 
 public class Done_GameController : NetworkBehaviour
 {
-    public GameObject[] hazards;
-	public Vector3 spawnValues;
-	public int hazardCount;
-	public float spawnWait;
-	public float startWait;
-	public float waveWait;
-	
 	public GUIText[] scoreText;
 	public GUIText restartText;
     public GUIText gameOverText;
@@ -24,7 +17,6 @@ public class Done_GameController : NetworkBehaviour
     private List<Done_PlayerController> PlayerControllers = new List<Done_PlayerController>();
 
     private bool gameOver;
-	private bool restart;
     private int kills;
 
     private const string SAVEGAME_LOCATION = "savedData.gd";
@@ -54,7 +46,6 @@ public class Done_GameController : NetworkBehaviour
         level = 1;
 
         gameOver = false;
-        restart = false;
         restartText.text = "";
         gameOverText.text = "";
         kills = 0;
@@ -64,39 +55,14 @@ public class Done_GameController : NetworkBehaviour
         {
             RuyiNet.Initialise(OnRuyiNetInitialised);
         }
-
-		StartCoroutine (SpawnWaves ());
 	}
 	
-	void Update ()
+	IEnumerator Update ()
 	{
-		if (restart)
+		if (gameOver)
 		{
+            yield return new WaitForSeconds(30);
 			SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-		}
-	}
-	
-	IEnumerator SpawnWaves ()
-	{
-		yield return new WaitForSeconds (startWait + level - 1);
-		while (true)
-		{
-			for (int i = 0; i < hazardCount; i++)
-			{
-				GameObject hazard = hazards [UnityEngine.Random.Range (0, hazards.Length)];
-				Vector3 spawnPosition = new Vector3 (UnityEngine.Random.Range (-spawnValues.x, spawnValues.x), spawnValues.y, spawnValues.z);
-				Quaternion spawnRotation = Quaternion.identity;
-				var spawned = Instantiate (hazard, spawnPosition, spawnRotation);
-                NetworkServer.Spawn(spawned);
-				yield return new WaitForSeconds (spawnWait);
-			}
-			yield return new WaitForSeconds (waveWait + (spawnWait * (level - 0)));
-			
-			if (gameOver)
-			{
-				restart = true;
-				break;
-			}
 		}
 	}
 	

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
+using UnityEngine.Networking;
 
-public class Done_DestroyByContact : MonoBehaviour
+public class Done_DestroyByContact : NetworkBehaviour
 {
 	public GameObject explosion;
 	public GameObject playerExplosion;
@@ -47,13 +48,16 @@ public class Done_DestroyByContact : MonoBehaviour
 
         if (explosion != null)
 		{
-			Instantiate(explosion, transform.position, transform.rotation);
+			var boom = Instantiate(explosion, transform.position, transform.rotation);
+            NetworkServer.Spawn(boom);
 		}
 
         if (other.tag == "Player")
         {
+            var boom = Instantiate(playerExplosion, other.transform.position, other.transform.rotation);
+            NetworkServer.Spawn(boom);
+
             var player = other.gameObject.GetComponent<Done_PlayerController>();
-            Instantiate(playerExplosion, other.transform.position, other.transform.rotation);
             player.TakeDamage();
             gameController.UpdateScore();
             health = 0;
