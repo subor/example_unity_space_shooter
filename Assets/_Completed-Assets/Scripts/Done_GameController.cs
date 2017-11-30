@@ -9,8 +9,6 @@ using UnityEngine.SceneManagement;
 
 public class Done_GameController : NetworkBehaviour
 {
-    private const string SAVEGAME_LOCATION = "savedData.gd";
-
     public void AddScore(NetworkInstanceId netId, int increment)
     {
         if (isServer)
@@ -274,47 +272,6 @@ public class Done_GameController : NetworkBehaviour
         mPlayerState.Callback = RpcUpdateScore;
 
         gameOverText.text = "";
-
-        if (RuyiNet != null &&
-            RuyiNet.IsRuyiNetAvailable)
-        {
-            RuyiNet.Initialise(OnRuyiNetInitialised);
-        }
-    }
-
-    private void OnRuyiNetInitialised()
-    {
-        Debug.Log("Game Controller: RuyiNet is available");
-        RuyiNet.ForEachPlayer((int index, RuyiNetProfile profile) =>
-        {
-            if (profile != null)
-            {
-                Debug.Log("GC: Player " + index);
-                //if (RuyiNet.LeaderboardService != null)
-                {
-                    //    RuyiNet.LeaderboardService.CreateLeaderboard(index, "Shooter", RuyiNetLeaderboardType.HIGH_VALUE, RuyiNetRotationType.MONTHLY, null);
-                }
-
-                if (RuyiNet.MatchmakingService != null)
-                {
-                    RuyiNet.MatchmakingService.EnableMatchmaking(index, null);
-
-                    if (RuyiNet.NewUser)
-                    {
-                        RuyiNet.MatchmakingService.SetPlayerRating(index, 1000, null);
-                    }
-                }
-
-                //if (RuyiNet.CloudService != null)
-                //{
-                //    RuyiNet.CloudService.RestoreData(0, Application.persistentDataPath, OnRestoreData);
-                //}
-                //else
-                //{
-                //    OnRestoreData(null);
-                //}
-            }
-        });
     }
 
     [Serializable]
@@ -329,6 +286,8 @@ public class Done_GameController : NetworkBehaviour
         Color.blue,
         Color.yellow
     };
+
+    private const string SAVEGAME_LOCATION = "savedData.gd";
 
     [SyncVar] private int mLevel;
     [SyncVar] private int mTotalKills;

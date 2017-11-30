@@ -1,3 +1,4 @@
+using Ruyi;
 using UnityEngine;
 
 // Hi! This script presents the overlay info for our tutorial content, linking you back to the relevant page.
@@ -9,7 +10,14 @@ public class TutorialInfo : MonoBehaviour
 	void Awake()
 	{
 		ShowLaunchScreen();
-	}
+
+        var ruyiNet = FindObjectOfType<RuyiNet>();
+        if (ruyiNet != null &&
+            ruyiNet.IsRuyiNetAvailable)
+        {
+            ruyiNet.Initialise(OnRuyiNetInitialised);
+        }
+    }
 
 	// show overlay info, pausing game time, disabling the audio listener 
 	// and enabling the overlay info parent game object
@@ -28,11 +36,47 @@ public class TutorialInfo : MonoBehaviour
         AudioListener.volume = 1f;
         Time.timeScale = 1f;
 
-
         var networkManager = FindObjectOfType<MyNetworkManager>();
         if (networkManager != null)
         {
             networkManager.StartQuickMatch();
         }
+    }
+
+    private void OnRuyiNetInitialised()
+    {
+        Debug.Log("Ruyi Net Initialised");
+
+        var ruyiNet = FindObjectOfType<RuyiNet>();
+        ruyiNet.ForEachPlayer((int index, RuyiNetProfile profile) =>
+        {
+            if (profile != null)
+            {
+                Debug.Log("GC: Player " + index);
+                //if (ruyiNet.LeaderboardService != null)
+                {
+                    //    ruyiNet.LeaderboardService.CreateLeaderboard(index, "Shooter", RuyiNetLeaderboardType.HIGH_VALUE, RuyiNetRotationType.MONTHLY, null);
+                }
+
+                if (ruyiNet.MatchmakingService != null)
+                {
+                    ruyiNet.MatchmakingService.EnableMatchmaking(index, null);
+
+                    if (ruyiNet.NewUser)
+                    {
+                        ruyiNet.MatchmakingService.SetPlayerRating(index, 1000, null);
+                    }
+                }
+
+                //if (ruyiNet.CloudService != null)
+                //{
+                //    ruyiNet.CloudService.RestoreData(0, Application.persistentDataPath, OnRestoreData);
+                //}
+                //else
+                //{
+                //    OnRestoreData(null);
+                //}
+            }
+        });
     }
 }
