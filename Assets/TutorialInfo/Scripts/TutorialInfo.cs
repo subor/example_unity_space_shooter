@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 // Hi! This script presents the overlay info for our tutorial content, linking you back to the relevant page.
 public class TutorialInfo : MonoBehaviour 
@@ -28,5 +27,12 @@ public class TutorialInfo : MonoBehaviour
 		overlay.SetActive (false);
         AudioListener.volume = 1f;
         Time.timeScale = 1f;
-	}
+
+
+        var networkManager = FindObjectOfType<MyNetworkManager>();
+        if (networkManager != null)
+        {
+            networkManager.StartQuickMatch();
+        }
+    }
 }
