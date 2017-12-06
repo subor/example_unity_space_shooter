@@ -1,4 +1,5 @@
 ﻿using Ruyi;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class Lobby : Panel
@@ -46,21 +47,25 @@ public class Lobby : Panel
 
     private void OnPlayerJoined(string profileId)
     {
+        Debug.Log("On Player Joined");
         UpdateLobbyInfo(RuyiNet.LobbyService.CurrentLobby);
     }
 
     private void OnPlayerLeave(string profileId)
     {
+        Debug.Log("On Player Leave");
         UpdateLobbyInfo(RuyiNet.LobbyService.CurrentLobby);
     }
 
     private void OnStartGame()
     {
+        Debug.Log("On Start Game");
         //  TODO
     }
 
     private void OnClosed()
     {
+        Debug.Log("On Closed");
         Close();
     }
 
