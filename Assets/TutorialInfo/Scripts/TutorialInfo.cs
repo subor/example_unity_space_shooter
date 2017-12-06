@@ -12,11 +12,11 @@ public class TutorialInfo : MonoBehaviour
 		ShowLaunchScreen();
 
         var ruyiNet = FindObjectOfType<RuyiNet>();
-        if (ruyiNet != null &&
-            ruyiNet.IsRuyiNetAvailable)
-        {
-            ruyiNet.Initialise(OnRuyiNetInitialised);
-        }
+
+        Debug.Log("Awake TutorialInfo");
+        Debug.Log(ruyiNet);
+        Debug.Log(ruyiNet.IsRuyiNetAvailable);
+        ruyiNet.Initialise(OnRuyiNetInitialised);
     }
 
 	// show overlay info, pausing game time, disabling the audio listener 

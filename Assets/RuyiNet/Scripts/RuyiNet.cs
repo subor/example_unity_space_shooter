@@ -6,11 +6,17 @@ public class RuyiNet : MonoBehaviour
 {
     public void Initialise(Action onInitialised)
     {
-        if (IsRuyiNetAvailable &&
-        !string.IsNullOrEmpty(AppId))
+        if (!string.IsNullOrEmpty(AppId))
         {
-            Debug.Log("Initialising RuyiNet");
-            mSDK.RuyiNetService.Initialise(AppId, AppSecret, onInitialised);
+            if (IsRuyiNetAvailable)
+            {
+                Debug.Log("Initialising RuyiNet");
+                mSDK.RuyiNetService.Initialise(AppId, AppSecret, onInitialised);
+            }
+            else
+            {
+                mOnInitialised = onInitialised;
+            }
         }
     }
 
@@ -27,7 +33,7 @@ public class RuyiNet : MonoBehaviour
 
     private void Awake()
     {
-        System.Console.SetOut(new DebugLogWriter());
+        Console.SetOut(new DebugLogWriter());
 
         mSDKContext = new RuyiSDKContext()
         {
@@ -35,6 +41,17 @@ public class RuyiNet : MonoBehaviour
         };
 
         mSDK = RuyiSDK.CreateInstance(mSDKContext);
+
+        Debug.Log("Awake RuyiNet SDK");
+
+        if (mOnInitialised != null)
+        {
+            if (IsRuyiNetAvailable)
+            {
+                Debug.Log("Initialising RuyiNet");
+                mSDK.RuyiNetService.Initialise(AppId, AppSecret, mOnInitialised);
+            }
+        }
 
         //DontDestroyOnLoad(this);
     }
@@ -64,43 +81,8 @@ public class RuyiNet : MonoBehaviour
                                 //  implemented properly.
 
     public RuyiNetProfile[] CurrentPlayers { get { return mSDK.RuyiNetService.CurrentPlayers; } }
-    public RuyiNetProfile ActivePlayer
-    {
-        get
-        {
-            if (IsRuyiNetAvailable)
-            {
-                for (int i = 0; i < 4; ++i)
-                {
-                    if (CurrentPlayers[i] != null)
-                    {
-                        return CurrentPlayers[i];
-                    }
-                }
-            }
-
-            return null;
-        }
-    }
-
-    public int ActivePlayerIndex
-    {
-        get
-        {
-            if (IsRuyiNetAvailable)
-            {
-                for (int i = 0; i < 4; ++i)
-                {
-                    if (CurrentPlayers[i] != null)
-                    {
-                        return i;
-                    }
-                }
-            }
-
-            return 0;
-        }
-    }
+    public RuyiNetProfile ActivePlayer { get { return mSDK.RuyiNetService.ActivePlayer; } }
+    public int ActivePlayerIndex { get { return mSDK.RuyiNetService.ActivePlayerIndex; } }
 
     public bool NewUser { get { return mSDK.RuyiNetService.NewUser; } }
 
@@ -109,6 +91,7 @@ public class RuyiNet : MonoBehaviour
     public RuyiNetCloudService CloudService { get { return mSDK.RuyiNetService.CloudService; } }
     public RuyiNetFriendService FriendService { get { return mSDK.RuyiNetService.FriendService; } }
     public RuyiNetLeaderboardService LeaderboardService { get { return mSDK.RuyiNetService.LeaderboardService; } }
+    public RuyiNetLobbyService LobbyService { get { return mSDK.RuyiNetService.LobbyService; } }
     public RuyiNetMatchmakingService MatchmakingService { get { return mSDK.RuyiNetService.MatchmakingService; } }
     public RuyiNetPartyService PartyService { get { return mSDK.RuyiNetService.PartyService; } }
     public RuyiNetProfileService ProfileService { get { return mSDK.RuyiNetService.ProfileService; } }
@@ -117,4 +100,6 @@ public class RuyiNet : MonoBehaviour
 
     private RuyiSDKContext mSDKContext;
     private RuyiSDK mSDK;
+
+    private Action mOnInitialised;
 }
