@@ -13,9 +13,6 @@ public class TutorialInfo : MonoBehaviour
 
         var ruyiNet = FindObjectOfType<RuyiNet>();
 
-        Debug.Log("Awake TutorialInfo");
-        Debug.Log(ruyiNet);
-        Debug.Log(ruyiNet.IsRuyiNetAvailable);
         ruyiNet.Initialise(OnRuyiNetInitialised);
     }
 
@@ -45,8 +42,6 @@ public class TutorialInfo : MonoBehaviour
 
     private void OnRuyiNetInitialised()
     {
-        Debug.Log("Ruyi Net Initialised");
-
         var ruyiNet = FindObjectOfType<RuyiNet>();
         ruyiNet.ForEachPlayer((int index, RuyiNetProfile profile) =>
         {

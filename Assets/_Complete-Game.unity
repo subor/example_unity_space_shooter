@@ -717,7 +717,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 403337880}
   m_HandleRect: {fileID: 403337879}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -7279,8 +7279,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_MethodName: ClosePlayerList
+      - m_Target: {fileID: 543237769}
+        m_MethodName: StartGame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -10667,7 +10667,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Party
+  m_Text: Lobby
 --- !u!222 &1978749337
 CanvasRenderer:
   m_ObjectHideFlags: 0

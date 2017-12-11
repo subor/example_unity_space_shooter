@@ -1,5 +1,8 @@
 ﻿using Ruyi;
+using System;
 using UnityEngine;
+using UnityEngine.Networking.Match;
+using UnityEngine.Networking.Types;
 using UnityEngine.UI;
 
 public class Lobby : Panel
@@ -32,6 +35,37 @@ public class Lobby : Panel
         }
     }
 
+    public void StartGame()
+    {
+        if (RuyiNet.ActivePlayer.profileId == RuyiNet.LobbyService.CurrentLobby.OwnerProfileId)
+        {
+            var networkManager = FindObjectOfType<MyNetworkManager>();
+            if (networkManager != null)
+            {
+                networkManager.StartMatchMaker();
+                networkManager.matchMaker.CreateMatch("Name", 4, true, "", "", "", 0, 0, OnMatchCreate);
+            }
+        }
+    }
+    
+    private void OnMatchCreate(bool success, string extendedInfo, MatchInfo matchInfo)
+    {
+        if (success)
+        {
+            base.Close();
+
+            var overlay = FindObjectOfType<TutorialInfo>();
+            overlay.gameObject.SetActive(false);
+            AudioListener.volume = 1f;
+            Time.timeScale = 1f;
+
+            var networkManager = FindObjectOfType<MyNetworkManager>();
+            networkManager.StartHost(matchInfo);
+            RuyiNet.LobbyService.StartGame(RuyiNet.ActivePlayerIndex, RuyiNet.LobbyService.CurrentLobby.LobbyId,
+                matchInfo.networkId.ToString(), null);
+        }
+    }
+
     private void Start()
     {
         RuyiNet.LobbyService.OnPlayerJoinLobby -= OnPlayerJoined;
@@ -47,25 +81,49 @@ public class Lobby : Panel
 
     private void OnPlayerJoined(string profileId)
     {
-        Debug.Log("On Player Joined");
         UpdateLobbyInfo(RuyiNet.LobbyService.CurrentLobby);
     }
 
     private void OnPlayerLeave(string profileId)
     {
-        Debug.Log("On Player Leave");
         UpdateLobbyInfo(RuyiNet.LobbyService.CurrentLobby);
     }
 
     private void OnStartGame()
     {
-        Debug.Log("On Start Game");
-        //  TODO
+        if (RuyiNet.ActivePlayer.profileId != RuyiNet.LobbyService.CurrentLobby.OwnerProfileId)
+        {
+            var networkManager = FindObjectOfType<MyNetworkManager>();
+            if (networkManager != null)
+            {
+                networkManager.StartMatchMaker();
+
+                var networkId = (NetworkID)Enum.Parse(typeof(NetworkID), RuyiNet.LobbyService.CurrentLobby.ConnectionString);
+
+                networkManager.matchMaker.JoinMatch(networkId, "", "", "", 0, 0, OnJoinMatch);
+            }
+        }
+    }
+
+    private void OnJoinMatch(bool success, string extendedInfo, MatchInfo matchInfo)
+    {
+        Debug.Log("Join Match: " + success + " - " + extendedInfo);
+        if (success)
+        {
+            base.Close();
+
+            var overlay = FindObjectOfType<TutorialInfo>();
+            overlay.gameObject.SetActive(false);
+            AudioListener.volume = 1f;
+            Time.timeScale = 1f;
+
+            var networkManager = FindObjectOfType<MyNetworkManager>();
+            networkManager.StartClient(matchInfo);
+        }
     }
 
     private void OnClosed()
     {
-        Debug.Log("On Closed");
         Close();
     }
 
