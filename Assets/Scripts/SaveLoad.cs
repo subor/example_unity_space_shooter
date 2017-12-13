@@ -2,11 +2,11 @@
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
-public static class SaveLoad
+public class SaveLoad
 {
-    public static void Save<T>(T saveData, string filename) 
+    public void Save<T>(T saveData, string persistentDataPath, string filename)
     {
-        var path = Path.Combine(Application.persistentDataPath, filename);
+        var path = Path.Combine(persistentDataPath, filename);
 
         var directory = Path.GetDirectoryName(path);
         if (!Directory.Exists(directory))
@@ -22,9 +22,9 @@ public static class SaveLoad
         file.Close();
     }
 
-    public static T Load<T>(string filename)
+    public T Load<T>(string persistentDataPath, string filename)
     {
-        var path = Path.Combine(Application.persistentDataPath, filename);
+        var path = Path.Combine(persistentDataPath, filename);
 
         Debug.Log("Loading game from: " + path);
 

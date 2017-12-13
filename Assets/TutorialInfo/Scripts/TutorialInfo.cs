@@ -36,7 +36,7 @@ public class TutorialInfo : MonoBehaviour
         var networkManager = FindObjectOfType<MyNetworkManager>();
         if (networkManager != null)
         {
-            networkManager.StartQuickMatch();
+            networkManager.StartHost();
         }
     }
 

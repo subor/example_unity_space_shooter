@@ -1,4 +1,5 @@
 ﻿using Ruyi;
+using Ruyi.SDK.StorageLayer;
 using System;
 using UnityEngine;
 
@@ -30,6 +31,19 @@ public class RuyiNet : MonoBehaviour
             }
         }
     }
+
+    public string GetPersistentDataPath(int index)
+    {
+        var path = mSDK.Storage.GetLocalPath("/<HTTPHDDCACHE>/" + CurrentPlayers[index].profileId + "/" + AppId);
+        if (path.Result)
+        {
+            return path.Path;
+        }
+
+        return null;
+    }
+
+    public string GetActivePersistentDataPath() { return GetPersistentDataPath(ActivePlayerIndex); }
 
     private void Awake()
     {
@@ -82,6 +96,7 @@ public class RuyiNet : MonoBehaviour
 
     public RuyiNetProfile[] CurrentPlayers { get { return mSDK.RuyiNetService.CurrentPlayers; } }
     public RuyiNetProfile ActivePlayer { get { return mSDK.RuyiNetService.ActivePlayer; } }
+
     public int ActivePlayerIndex { get { return mSDK.RuyiNetService.ActivePlayerIndex; } }
 
     public bool NewUser { get { return mSDK.RuyiNetService.NewUser; } }

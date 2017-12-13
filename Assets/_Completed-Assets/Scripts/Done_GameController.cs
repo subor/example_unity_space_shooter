@@ -45,17 +45,12 @@ public class Done_GameController : NetworkBehaviour
     {
         Debug.Log("Register Player: " + netId.ToString() + " | Host: " + isServer);
 
-        /*if (RuyiNet.CloudService != null)
-        {
-            RuyiNet.CloudService.RestoreData(RuyiNet.ActivePlayerIndex, Application.persistentDataPath, null);
-        }*/
-
         //  TODO:   Get Profile Name
         var savePath = string.IsNullOrEmpty(ruyiProfileName) ? SAVEGAME_LOCATION : Path.Combine(ruyiProfileName, SAVEGAME_LOCATION);
         SaveGame saveGame;
         try
         {
-            saveGame = SaveLoad.Load<SaveGame>(savePath);
+            saveGame = mSaveLoad.Load<SaveGame>(RuyiNet.GetActivePersistentDataPath(), savePath);
         }
         catch (FileNotFoundException)
         {
@@ -164,6 +159,11 @@ public class Done_GameController : NetworkBehaviour
     public GUIText gameOverText;
     public GUIText levelText;
 
+    private void Awake()
+    {
+        mSaveLoad = new SaveLoad();
+    }
+
     [ClientRpc]
     private void RpcUpdatePlayerColors()
     {
@@ -230,7 +230,7 @@ public class Done_GameController : NetworkBehaviour
                 !RuyiNet.IsRuyiNetAvailable ||
                 string.IsNullOrEmpty(mPlayerState[i].ProfileId))
             {
-                SaveLoad.Save(saveGame, SAVEGAME_LOCATION);
+                mSaveLoad.Save(saveGame, RuyiNet.GetActivePersistentDataPath(), SAVEGAME_LOCATION);
             }
             else
             {
@@ -240,7 +240,7 @@ public class Done_GameController : NetworkBehaviour
                         profile.profileId == mPlayerState[i].ProfileId)
                     {
                         var savePath = Path.Combine(profile.profileName, SAVEGAME_LOCATION);
-                        SaveLoad.Save(saveGame, savePath);
+                        mSaveLoad.Save(saveGame, RuyiNet.GetPersistentDataPath(index), savePath);
 
                         if (RuyiNet.CloudService != null)
                         {
@@ -290,4 +290,5 @@ public class Done_GameController : NetworkBehaviour
     [SyncVar] private int mLevel;
     [SyncVar] private int mTotalKills;
     SyncListPlayerState mPlayerState = new SyncListPlayerState();
+    private SaveLoad mSaveLoad;
 }
