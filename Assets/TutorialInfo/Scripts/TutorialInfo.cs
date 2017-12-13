@@ -53,20 +53,20 @@ public class TutorialInfo : MonoBehaviour
                     //    ruyiNet.LeaderboardService.CreateLeaderboard(index, "Shooter", RuyiNetLeaderboardType.HIGH_VALUE, RuyiNetRotationType.MONTHLY, null);
                 }
 
-                if (ruyiNet.MatchmakingService != null)
-                {
-                    ruyiNet.MatchmakingService.EnableMatchmaking(index, null);
-
-                    if (ruyiNet.NewUser)
-                    {
-                        ruyiNet.MatchmakingService.SetPlayerRating(index, 1000, null);
-                    }
-                }
-
-                //if (ruyiNet.CloudService != null)
+                //if (ruyiNet.MatchmakingService != null)
                 //{
-                //    ruyiNet.CloudService.RestoreData(0, Application.persistentDataPath, OnRestoreData);
+                //    ruyiNet.MatchmakingService.EnableMatchmaking(index, null);
+                //
+                //    if (ruyiNet.NewUser)
+                //    {
+                //        ruyiNet.MatchmakingService.SetPlayerRating(index, 1000, null);
+                //    }
                 //}
+
+                if (ruyiNet.CloudService != null)
+                {
+                    ruyiNet.CloudService.RestoreData(index, null);
+                }
                 //else
                 //{
                 //    OnRestoreData(null);

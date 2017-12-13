@@ -45,6 +45,11 @@ public class Done_GameController : NetworkBehaviour
     {
         Debug.Log("Register Player: " + netId.ToString() + " | Host: " + isServer);
 
+        /*if (RuyiNet.CloudService != null)
+        {
+            RuyiNet.CloudService.RestoreData(RuyiNet.ActivePlayerIndex, Application.persistentDataPath, null);
+        }*/
+
         //  TODO:   Get Profile Name
         var savePath = string.IsNullOrEmpty(ruyiProfileName) ? SAVEGAME_LOCATION : Path.Combine(ruyiProfileName, SAVEGAME_LOCATION);
         SaveGame saveGame;
@@ -81,6 +86,7 @@ public class Done_GameController : NetworkBehaviour
         {
             if (mPlayerState[i].NetId == netId)
             {
+                Debug.Log("UnregisterPlayer");
                 mPlayerState.RemoveAt(i);
                 break;
             }
@@ -207,7 +213,7 @@ public class Done_GameController : NetworkBehaviour
         gameOverText.text = "Game Over!";
 
         yield return new WaitForSeconds(5);
-
+        
         for (var i = 0; i < mPlayerState.Count; ++i)
         {
             var saveGame = new SaveGame() { Strength = mPlayerState[i].MaxStrength };
@@ -216,8 +222,12 @@ public class Done_GameController : NetworkBehaviour
                 ++saveGame.Strength;
             }
 
+            Debug.Log("RuyiNet: " + RuyiNet);
+            Debug.Log("IsRuyiNetAvailable: " + RuyiNet.IsRuyiNetAvailable);
+            Debug.Log("ProfileId: " + mPlayerState[i].ProfileId);
+
             if (RuyiNet == null ||
-                RuyiNet.IsRuyiNetAvailable ||
+                !RuyiNet.IsRuyiNetAvailable ||
                 string.IsNullOrEmpty(mPlayerState[i].ProfileId))
             {
                 SaveLoad.Save(saveGame, SAVEGAME_LOCATION);
@@ -232,28 +242,16 @@ public class Done_GameController : NetworkBehaviour
                         var savePath = Path.Combine(profile.profileName, SAVEGAME_LOCATION);
                         SaveLoad.Save(saveGame, savePath);
 
-                        //if (RuyiNet.CloudService != null)
-                        //{
-                        //    RuyiNet.CloudService.BackupData(index, Application.persistentDataPath, null);
-                        //}
+                        if (RuyiNet.CloudService != null)
+                        {
+                            Debug.Log("Backup Data");
+                            RuyiNet.CloudService.BackupData(index, null);
+                        }
 
                         var score = mPlayerState[i].Score;
                         if (RuyiNet.LeaderboardService != null)
                         {
                             RuyiNet.LeaderboardService.PostScoreToLeaderboard(index, "Shooter", score, null);
-                        }
-
-                        if (RuyiNet.MatchmakingService != null)
-                        {
-                            if (score <= 500)
-                            {
-                                RuyiNet.MatchmakingService.DecrementPlayerRating(index, 5, null);
-                            }
-
-                            if (score >= 1000)
-                            {
-                                RuyiNet.MatchmakingService.IncrementPlayerRating(index, 5, null);
-                            }
                         }
                     }
                 });

@@ -53,7 +53,7 @@ public class RuyiNet : MonoBehaviour
             }
         }
 
-        //DontDestroyOnLoad(this);
+        DontDestroyOnLoad(this);
     }
 
     private void Update()
