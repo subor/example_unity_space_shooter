@@ -40,6 +40,11 @@ public class TutorialInfo : MonoBehaviour
         }
     }
 
+    public void ApplicationQuit()
+    {
+        Application.Quit();
+    }
+
     private void OnRuyiNetInitialised()
     {
         var ruyiNet = FindObjectOfType<RuyiNet>();
