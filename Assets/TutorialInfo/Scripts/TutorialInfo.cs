@@ -7,12 +7,14 @@ public class TutorialInfo : MonoBehaviour
 	// store the GameObject which renders the overlay info
 	public GameObject overlay;
 
-	void Awake()
-	{
-		ShowLaunchScreen();
+    void Awake()
+    {
+        ShowLaunchScreen();
+    }
 
+    void Start()
+    { 
         var ruyiNet = FindObjectOfType<RuyiNet>();
-
         ruyiNet.Initialise(OnRuyiNetInitialised);
     }
 

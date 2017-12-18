@@ -258,6 +258,21 @@ public class Done_GameController : NetworkBehaviour
             }
         }
 
+        var networkManager = FindObjectOfType<MyNetworkManager>();
+        if (networkManager != null)
+        {
+            if (isServer)
+            {
+                networkManager.StopHost();
+            }
+            else
+            {
+                networkManager.StopClient();
+            }
+
+            networkManager.StopMatchMaker();
+        }
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 

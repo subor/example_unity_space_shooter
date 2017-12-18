@@ -9,14 +9,16 @@ public class RuyiNet : MonoBehaviour
     {
         if (!string.IsNullOrEmpty(AppId))
         {
-            if (IsRuyiNetAvailable)
+            if (!mSDK.RuyiNetService.Initialised)
             {
-                Debug.Log("Initialising RuyiNet");
-                mSDK.RuyiNetService.Initialise(AppId, AppSecret, onInitialised);
-            }
-            else
-            {
-                mOnInitialised = onInitialised;
+                if (IsRuyiNetAvailable)
+                {
+                    mSDK.RuyiNetService.Initialise(AppId, AppSecret, onInitialised);
+                }
+                else
+                {
+                    mOnInitialised = onInitialised;
+                }
             }
         }
     }
@@ -49,25 +51,24 @@ public class RuyiNet : MonoBehaviour
     {
         Console.SetOut(new DebugLogWriter());
 
-        mSDKContext = new RuyiSDKContext()
+        if (mSDK == null)
         {
-            endpoint = RuyiSDKContext.Endpoint.Console
-        };
+            mSDKContext = new RuyiSDKContext()
+            {
+                endpoint = RuyiSDKContext.Endpoint.Console
+            };
 
-        mSDK = RuyiSDK.CreateInstance(mSDKContext);
-
-        Debug.Log("Awake RuyiNet SDK");
+            mSDK = RuyiSDK.CreateInstance(mSDKContext);
+        }
 
         if (mOnInitialised != null)
         {
             if (IsRuyiNetAvailable)
             {
-                Debug.Log("Initialising RuyiNet");
                 mSDK.RuyiNetService.Initialise(AppId, AppSecret, mOnInitialised);
+                mOnInitialised = null;
             }
         }
-
-        DontDestroyOnLoad(this);
     }
 
     private void Update()
@@ -113,7 +114,7 @@ public class RuyiNet : MonoBehaviour
     public RuyiNetProfileService ProfileService { get { return mSDK.RuyiNetService.ProfileService; } }
     public RuyiNetUserFileService UserFileService { get { return mSDK.RuyiNetService.UserFileService; } }
     public RuyiNetVideoService VideoService { get { return mSDK.RuyiNetService.VideoService; } }
-
+    
     private RuyiSDKContext mSDKContext;
     private RuyiSDK mSDK;
 
