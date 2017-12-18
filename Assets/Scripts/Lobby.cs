@@ -22,22 +22,23 @@ public class Lobby : Panel
         base.Close();
 
         if (RuyiNet != null &&
-            RuyiNet.IsRuyiNetAvailable)
+            RuyiNet.IsRuyiNetAvailable &&
+            RuyiNet.CurrentLobby != null)
         {
-            if (RuyiNet.LobbyService.CurrentLobby.MemberCount <= 1)
+            if (RuyiNet.CurrentLobby.MemberCount <= 1)
             {
-                RuyiNet.LobbyService.CloseLobby(RuyiNet.ActivePlayerIndex, RuyiNet.LobbyService.CurrentLobby.LobbyId, null);
+                RuyiNet.LobbyService.CloseLobby(RuyiNet.ActivePlayerIndex, RuyiNet.CurrentLobbyId, null);
             }
             else
             {
-                RuyiNet.LobbyService.LeaveLobby(RuyiNet.ActivePlayerIndex, RuyiNet.LobbyService.CurrentLobby.LobbyId, null);
+                RuyiNet.LobbyService.LeaveLobby(RuyiNet.ActivePlayerIndex, RuyiNet.CurrentLobbyId, null);
             }
         }
     }
 
     public void StartGame()
     {
-        if (RuyiNet.ActivePlayer.profileId == RuyiNet.LobbyService.CurrentLobby.OwnerProfileId)
+        if (RuyiNet.ActivePlayer.profileId == RuyiNet.CurrentLobby.OwnerProfileId)
         {
             var networkManager = FindObjectOfType<MyNetworkManager>();
             if (networkManager != null)
@@ -61,7 +62,7 @@ public class Lobby : Panel
 
             var networkManager = FindObjectOfType<MyNetworkManager>();
             networkManager.StartHost(matchInfo);
-            RuyiNet.LobbyService.StartGame(RuyiNet.ActivePlayerIndex, RuyiNet.LobbyService.CurrentLobby.LobbyId,
+            RuyiNet.LobbyService.StartGame(RuyiNet.ActivePlayerIndex, RuyiNet.CurrentLobbyId,
                 matchInfo.networkId.ToString(), null);
         }
     }
@@ -81,24 +82,24 @@ public class Lobby : Panel
 
     private void OnPlayerJoined(string profileId)
     {
-        UpdateLobbyInfo(RuyiNet.LobbyService.CurrentLobby);
+        UpdateLobbyInfo(RuyiNet.CurrentLobby);
     }
 
     private void OnPlayerLeave(string profileId)
     {
-        UpdateLobbyInfo(RuyiNet.LobbyService.CurrentLobby);
+        UpdateLobbyInfo(RuyiNet.CurrentLobby);
     }
 
     private void OnStartGame()
     {
-        if (RuyiNet.ActivePlayer.profileId != RuyiNet.LobbyService.CurrentLobby.OwnerProfileId)
+        if (RuyiNet.ActivePlayer.profileId != RuyiNet.CurrentLobby.OwnerProfileId)
         {
             var networkManager = FindObjectOfType<MyNetworkManager>();
             if (networkManager != null)
             {
                 networkManager.StartMatchMaker();
 
-                var networkId = (NetworkID)Enum.Parse(typeof(NetworkID), RuyiNet.LobbyService.CurrentLobby.ConnectionString);
+                var networkId = (NetworkID)Enum.Parse(typeof(NetworkID), RuyiNet.CurrentLobby.ConnectionString);
 
                 networkManager.matchMaker.JoinMatch(networkId, "", "", "", 0, 0, OnJoinMatch);
             }
@@ -209,7 +210,7 @@ public class Lobby : Panel
 
         RuyiNet.FriendService.RemoveFriend(RuyiNet.ActivePlayerIndex, profileId, (RuyiNetResponse) =>
         {
-            UpdateLobbyInfo(RuyiNet.LobbyService.CurrentLobby);
+            UpdateLobbyInfo(RuyiNet.CurrentLobby);
         });
     }
 
