@@ -71,10 +71,17 @@ public class Panel : MonoBehaviour
         textFields[1].text = score;
 
         var button = playerProfile.GetComponentsInChildren<Button>();
-        button[1].onClick.AddListener(() =>
+        if (profileId == RuyiNet.ActivePlayer.profileId)
         {
-            RuyiNet.PartyService.SendPartyInvitation(0, profileId, null);
-        });
+            button[1].gameObject.SetActive(false);
+        }
+        else
+        {
+            button[1].onClick.AddListener(() =>
+            {
+                RuyiNet.PartyService.SendPartyInvitation(0, profileId, null);
+            });
+        }
 
 
         if (!string.IsNullOrEmpty(pictureUrl))

@@ -19,13 +19,15 @@ public class Profile : MonoBehaviour
         {
             mProfileImageDownload = new WWW(RuyiNet.ActivePlayer.pictureUrl);
         }
+        
+        var button = playerProfile.GetComponentsInChildren<Button>();
+        button[0].onClick.RemoveAllListeners();
+        button[0].onClick.AddListener(UpdateAvatar);
 
-        var button = playerProfile.GetComponentInChildren<Button>();
-        button.onClick.RemoveAllListeners();
-        button.onClick.AddListener(UpdateAvatar);
-
-        var buttonText = button.GetComponentInChildren<Text>();
+        var buttonText = button[0].GetComponentInChildren<Text>();
         buttonText.text = "CHANGE AVATAR";
+
+        button[1].gameObject.SetActive(false);
 
         var summary = GameObject.FindGameObjectWithTag("ProfileSummary");
         var summaryText = summary.GetComponentsInChildren<Text>();
