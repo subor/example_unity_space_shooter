@@ -109,7 +109,6 @@ public class RuyiNet : MonoBehaviour
     public RuyiNetFriendService FriendService { get { return mSDK.RuyiNetService.FriendService; } }
     public RuyiNetLeaderboardService LeaderboardService { get { return mSDK.RuyiNetService.LeaderboardService; } }
     public RuyiNetLobbyService LobbyService { get { return mSDK.RuyiNetService.LobbyService; } }
-    public RuyiNetMatchmakingService MatchmakingService { get { return mSDK.RuyiNetService.MatchmakingService; } }
     public RuyiNetPartyService PartyService { get { return mSDK.RuyiNetService.PartyService; } }
     public RuyiNetProfileService ProfileService { get { return mSDK.RuyiNetService.ProfileService; } }
     public RuyiNetUserFileService UserFileService { get { return mSDK.RuyiNetService.UserFileService; } }

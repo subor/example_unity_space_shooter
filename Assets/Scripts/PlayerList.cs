@@ -106,40 +106,6 @@ public class PlayerList : Panel
         });
     }
 
-    public void FindPlayers()
-    {
-        gameObject.SetActive(true);
-        Title.text = "Matchmaking";
-
-        CleanProfileData();
-        ShowLoadingCircle();
-
-        RuyiNet.MatchmakingService.FindPlayers(RuyiNet.ActivePlayerIndex, 2000, 9, (RuyiNetFindPlayersResponse response) =>
-        {
-            HideLoadingCircle();
-
-            if (response.data.matchesFound != null)
-            {
-                var y = START_Y_POSITION;
-                foreach (var i in response.data.matchesFound)
-                {
-                    var playerProfile = AddProfileEntry(y, i.playerName, i.playerId, i.pictureUrl, "");
-
-                    var button = playerProfile.GetComponentInChildren<Button>();
-                    button.onClick.AddListener(() =>
-                    {
-                        AddFriend(button, i.playerId);
-                    });
-
-                    var buttonText = button.GetComponentInChildren<Text>();
-                    buttonText.text = "ADD FRIEND";
-
-                    y += Y_POSITION_OFFSET;
-                }
-            }
-        });
-    }
-
     private void AddFriend(Button button, string profileId)
     {
         button.interactable = false;
