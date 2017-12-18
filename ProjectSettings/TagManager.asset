@@ -12,6 +12,7 @@ TagManager:
   - ScrollView
   - ProfileSummary
   - Shot
+  - Loading
   layers:
   - Default
   - TransparentFX

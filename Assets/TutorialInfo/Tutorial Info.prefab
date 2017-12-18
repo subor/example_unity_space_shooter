@@ -491,6 +491,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   overlay: {fileID: 1000012547990680}
+  loading: {fileID: 0}
 --- !u!114 &114000011534153914
 MonoBehaviour:
   m_ObjectHideFlags: 1

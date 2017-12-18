@@ -6,6 +6,7 @@ public class TutorialInfo : MonoBehaviour
 {
 	// store the GameObject which renders the overlay info
 	public GameObject overlay;
+    public GameObject loading;
 
     void Awake()
     {
@@ -13,7 +14,8 @@ public class TutorialInfo : MonoBehaviour
     }
 
     void Start()
-    { 
+    {
+        loading.SetActive(true);
         var ruyiNet = FindObjectOfType<RuyiNet>();
         ruyiNet.Initialise(OnRuyiNetInitialised);
     }
@@ -72,13 +74,18 @@ public class TutorialInfo : MonoBehaviour
 
                 if (ruyiNet.CloudService != null)
                 {
-                    ruyiNet.CloudService.RestoreData(index, null);
+                    ruyiNet.CloudService.RestoreData(index, OnRestoreData);
                 }
-                //else
-                //{
-                //    OnRestoreData(null);
-                //}
+                else
+                {
+                    OnRestoreData(null);
+                }
             }
         });
+    }
+
+    private void OnRestoreData(RuyiNetResponse response)
+    {
+        loading.SetActive(false);
     }
 }
