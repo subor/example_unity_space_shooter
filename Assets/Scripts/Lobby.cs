@@ -1,5 +1,6 @@
 ﻿using Ruyi;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking.Match;
 using UnityEngine.Networking.Types;
@@ -98,11 +99,19 @@ public class Lobby : Panel
             if (networkManager != null)
             {
                 networkManager.StartMatchMaker();
-
-                var networkId = (NetworkID)Enum.Parse(typeof(NetworkID), RuyiNet.CurrentLobby.ConnectionString);
-
-                networkManager.matchMaker.JoinMatch(networkId, "", "", "", 0, 0, OnJoinMatch);
+                networkManager.matchMaker.ListMatches(0, 20, "", false, 0, 0, OnListMatches);
             }
+        }
+    }
+
+    private void OnListMatches(bool success, string extendedInfo, List<MatchInfoSnapshot> matchInfo)
+    {
+        Debug.Log("Num Matches found: " + matchInfo.Count);
+        var networkManager = FindObjectOfType<MyNetworkManager>();
+        if (networkManager != null)
+        {
+            var networkId = (NetworkID)Enum.Parse(typeof(NetworkID), RuyiNet.CurrentLobby.ConnectionString);
+            networkManager.matchMaker.JoinMatch(networkId, "", "", "", 0, 0, OnJoinMatch);
         }
     }
 
