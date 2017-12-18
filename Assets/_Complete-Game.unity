@@ -450,8 +450,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_MethodName: ClosePlayerList
+      - m_Target: {fileID: 589946709}
+        m_MethodName: Close
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -9410,7 +9410,7 @@ GameObject:
   - component: {fileID: 1790509712}
   - component: {fileID: 1790509711}
   m_Layer: 0
-  m_Name: Start Position
+  m_Name: Start Position (0)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
