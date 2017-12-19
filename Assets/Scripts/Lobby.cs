@@ -63,6 +63,8 @@ public class Lobby : Panel
 
             var networkManager = FindObjectOfType<MyNetworkManager>();
             networkManager.StartHost(matchInfo);
+
+            Debug.Log(matchInfo.networkId.ToString());
             RuyiNet.LobbyService.StartGame(RuyiNet.ActivePlayerIndex, RuyiNet.CurrentLobbyId,
                 matchInfo.networkId.ToString(), null);
         }
@@ -139,7 +141,7 @@ public class Lobby : Panel
 
     private void QuickMatch()
     {
-        RuyiNet.LobbyService.FindLobbies(RuyiNet.ActivePlayerIndex, 10, OnQuickMatchFind);
+        RuyiNet.LobbyService.FindLobbies(RuyiNet.ActivePlayerIndex, 10, 1, OnQuickMatchFind);
     }
 
     private void OnQuickMatchFind(RuyiNetLobby[] lobbies)
@@ -151,7 +153,7 @@ public class Lobby : Panel
         }
         else
         {
-            RuyiNet.LobbyService.CreateLobby(RuyiNet.ActivePlayerIndex, UpdateLobbyInfo);
+            RuyiNet.LobbyService.CreateLobby(RuyiNet.ActivePlayerIndex, 4, UpdateLobbyInfo);
         }
     }
 
