@@ -141,7 +141,7 @@ public class Lobby : Panel
 
     private void QuickMatch()
     {
-        RuyiNet.LobbyService.FindLobbies(RuyiNet.ActivePlayerIndex, 10, 1, OnQuickMatchFind);
+        RuyiNet.LobbyService.FindLobbies(RuyiNet.ActivePlayerIndex, 10, RuyiNetLobbyType.PLAYER, 1, OnQuickMatchFind);
     }
 
     private void OnQuickMatchFind(RuyiNetLobby[] lobbies)
@@ -153,7 +153,7 @@ public class Lobby : Panel
         }
         else
         {
-            RuyiNet.LobbyService.CreateLobby(RuyiNet.ActivePlayerIndex, 4, UpdateLobbyInfo);
+            RuyiNet.LobbyService.CreateLobby(RuyiNet.ActivePlayerIndex, 4, RuyiNetLobbyType.PLAYER, UpdateLobbyInfo);
         }
     }
 
