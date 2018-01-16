@@ -1,29 +1,24 @@
-# README #
+# Unity 3D
 
-This README would normally document whatever steps are necessary to get your application up and running.
+We're planning to support [Unity 3D](https://unity3d.com/) as a first-class development environment for Ruyi.
 
-### What is this repository for? ###
+Refer to the following:
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+- [Unity sample](https://bitbucket.org/playruyi/space_shooter)
+- [Unity tutorial](../tutorials/run_unity_sample_console.md)
 
-### How do I get set up? ###
+## Prerequisites
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+- Unity 2017.1.1f1 (newer versions likely work)
 
-### Contribution guidelines ###
+## Quick Start
 
-* Writing tests
-* Code review
-* Other guidelines
+RuyiNet is provided as high-level wrapper around the Ruyi C# API.
 
-### Who do I talk to? ###
+1. [SDK libraries targetting .Net 3.5](http://dev.playruyi.com/udownloadslist/SDK) should be placed in `Assets/Plugins/x64`
+1. Create an instance of RuyiNet script and add your app id/secret:  
+![](/docs/img/unity_ruyinet.png)
 
-* Repo owner or admin
-* Other community or team contact
+## Advanced Usage
+
+__Coming Soon__
