@@ -1,5 +1,4 @@
 ﻿using Ruyi;
-using Ruyi.SDK.StorageLayer;
 using System;
 using UnityEngine;
 
@@ -106,12 +105,15 @@ public class RuyiNet : MonoBehaviour
 
     public bool IsRuyiNetAvailable { get { return mSDK != null && mSDK.RuyiNetService != null; } }
 
+    public bool IsWorking { get { return mSDK.RuyiNetService.IsWorking; } }
+
     public RuyiNetCloudService CloudService { get { return mSDK.RuyiNetService.CloudService; } }
     public RuyiNetFriendService FriendService { get { return mSDK.RuyiNetService.FriendService; } }
     public RuyiNetLeaderboardService LeaderboardService { get { return mSDK.RuyiNetService.LeaderboardService; } }
     public RuyiNetLobbyService LobbyService { get { return mSDK.RuyiNetService.LobbyService; } }
     public RuyiNetPartyService PartyService { get { return mSDK.RuyiNetService.PartyService; } }
     public RuyiNetProfileService ProfileService { get { return mSDK.RuyiNetService.ProfileService; } }
+    public RuyiNetTelemetryService TelemetryService { get { return mSDK.RuyiNetService.TelemetryService; } }
     public RuyiNetUserFileService UserFileService { get { return mSDK.RuyiNetService.UserFileService; } }
     public RuyiNetVideoService VideoService { get { return mSDK.RuyiNetService.VideoService; } }
     

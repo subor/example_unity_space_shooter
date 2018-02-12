@@ -36,6 +36,7 @@ public class Done_DestroyByContact : NetworkBehaviour
             if (health <= gameController.GetPlayerStrength(mover.PlayerNetId))
             {
                 gameController.AddScore(mover.PlayerNetId, scoreValue);
+                gameController.LogDestructionEvent(tag, other.transform.position);
                 health = 0;
             }
             else

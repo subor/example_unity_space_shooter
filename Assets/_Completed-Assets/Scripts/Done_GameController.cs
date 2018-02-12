@@ -138,6 +138,18 @@ public class Done_GameController : NetworkBehaviour
         }
     }
 
+    public void LogDestructionEvent(string tag, Vector3 position)
+    {
+        if (RuyiNet &&
+            RuyiNet.IsRuyiNetAvailable)
+        {
+            var customData = new Dictionary<string, string>();
+            customData["objectType"] = tag;
+            customData["positon"] = position.ToString();
+            RuyiNet.TelemetryService.LogTelemetryEvent(0, mTelemetrySessionId, "kill", customData, null);
+        }
+    }
+
     public struct PlayerStateData
     {
         public NetworkInstanceId NetId;
@@ -213,7 +225,14 @@ public class Done_GameController : NetworkBehaviour
         gameOverText.text = "Game Over!";
 
         yield return new WaitForSeconds(5);
-        
+
+        if (RuyiNet != null &&
+            RuyiNet.IsRuyiNetAvailable)
+        {
+            Debug.Log("Ending telemetry session with ID " + mTelemetrySessionId);
+            RuyiNet.TelemetryService.EndTelemetrySession(0, mTelemetrySessionId, null);
+        }
+
         for (var i = 0; i < mPlayerState.Count; ++i)
         {
             var saveGame = new SaveGame() { Strength = mPlayerState[i].MaxStrength };
@@ -231,6 +250,7 @@ public class Done_GameController : NetworkBehaviour
                 string.IsNullOrEmpty(mPlayerState[i].ProfileId))
             {
                 mSaveLoad.Save(saveGame, RuyiNet.GetActivePersistentDataPath(), SAVEGAME_LOCATION);
+                ReturnToMenu();
             }
             else
             {
@@ -255,9 +275,19 @@ public class Done_GameController : NetworkBehaviour
                         }
                     }
                 });
+
+                while (RuyiNet.IsWorking)
+                {
+                    yield return null;
+                }
+
+                ReturnToMenu();
             }
         }
+    }
 
+    private void ReturnToMenu()
+    {
         var networkManager = FindObjectOfType<MyNetworkManager>();
         if (networkManager != null)
         {
@@ -284,6 +314,20 @@ public class Done_GameController : NetworkBehaviour
         mTotalKills = 0;
         mPlayerState.Callback = RpcUpdateScore;
 
+        if (RuyiNet != null &&
+            RuyiNet.IsRuyiNetAvailable)
+        {
+            RuyiNet.TelemetryService.StartTelemetrySession(0,
+                (RuyiNetTelemetrySession session) =>
+            {
+                RuyiNet.TelemetryService.LogTelemetryEvent(0, session.Id, "GAME_STARTED", null);
+                mTelemetrySessionId = session.Id;
+
+                Debug.Log("Started telemetry session with ID " + session.Id);
+            });
+        }
+
+
         gameOverText.text = "";
     }
 
@@ -306,4 +350,5 @@ public class Done_GameController : NetworkBehaviour
     [SyncVar] private int mTotalKills;
     SyncListPlayerState mPlayerState = new SyncListPlayerState();
     private SaveLoad mSaveLoad;
+    private string mTelemetrySessionId;
 }
