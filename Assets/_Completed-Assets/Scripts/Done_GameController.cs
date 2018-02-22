@@ -144,9 +144,8 @@ public class Done_GameController : NetworkBehaviour
             RuyiNet.IsRuyiNetAvailable)
         {
             var customData = new Dictionary<string, string>();
-            customData["objectType"] = tag;
-            customData["positon"] = position.ToString();
-            RuyiNet.TelemetryService.LogTelemetryEvent(0, mTelemetrySessionId, "kill", customData, null);
+            customData["position"] = "[" + position.x + ", " + position.z + "]";
+            RuyiNet.TelemetryService.LogTelemetryEvent(0, mTelemetrySessionId, "kill", tag, customData, null);
         }
     }
 
