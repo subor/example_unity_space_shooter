@@ -1,11 +1,17 @@
-﻿using Ruyi.SDK;
-using Ruyi.SDK.StorageLayer;
-
+﻿
 using UnityEngine;
 
-public class RuyiSDKTest : MonoBehaviour
+public class JadeSDKTest : MonoBehaviour
 {
-	void Start()
+    void Awake()
+    {
+#if UNITY_STANDALONE_WIN
+        Screen.SetResolution(Screen.currentResolution.width,
+                              Screen.currentResolution.height, true);
+#endif
+    }
+
+    void Start()
 	{
         /*RuyiSDK sdk = RuyiSDK.CreateInstance(new RuyiSDKContext(){endpoint=RuyiSDKContext.Endpoint.Console});
 
