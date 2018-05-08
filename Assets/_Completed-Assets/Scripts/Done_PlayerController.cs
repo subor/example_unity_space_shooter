@@ -66,39 +66,57 @@ public class Done_PlayerController : NetworkBehaviour
     {
         for (int i = 0; i < msg.Triggers.Count; ++i)
         {
-            Debug.Log("Done_PlayerController RuyiInputStateChangeHandler key:" + msg.Triggers[i].Key + " newValue:" + msg.Triggers[i].NewValue);
+            Debug.Log("Done_PlayerController topic:" + topic + " RuyiInputStateChangeHandler key:" + msg.Triggers[i].Key + " newValue:" + msg.Triggers[i].NewValue);
 
             if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.Left == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonLeft == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogLeftJoyX == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue))
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonLeft == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogLeftJoyX == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
             {
                 horizontalAxis = -1;
                 isMove = true;
             }
+
             if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.Right == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonRight == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogRightJoyX == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue))
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonRight == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogRightJoyX == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
             {
                 horizontalAxis = 1;
                 isMove = true;
             }
+
+            if (((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonLeft == msg.Triggers[i].Key && 2 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogLeftJoyX == msg.Triggers[i].Key && 2 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonRight == msg.Triggers[i].Key && 2 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogRightJoyX == msg.Triggers[i].Key && 2 == msg.Triggers[i].NewValue))
+            {
+                horizontalAxis = 0;
+            }
+
             if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.Up == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonUp == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogLeftJoyY == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue))
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonUp == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogLeftJoyY == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
             {
                 vertiacalAxis = 1;
                 isMove = true;
             }
             if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.Down == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonDown == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogRightJoyY == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue))
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonDown == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogRightJoyY == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
             {
                 vertiacalAxis = -1;
                 isMove = true;
             }
 
+            if (((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonDown == msg.Triggers[i].Key && 2 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogLeftJoyY == msg.Triggers[i].Key && 2 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonUp == msg.Triggers[i].Key && 2 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogRightJoyY == msg.Triggers[i].Key && 2 == msg.Triggers[i].NewValue))
+            {
+                vertiacalAxis = 0;
+            }
+
             if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.E == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonA == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue))
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonB == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
             {
                 isFire = true;
             }
@@ -111,6 +129,7 @@ public class Done_PlayerController : NetworkBehaviour
     bool isFire = false;
     private void RuyiInputValueListener()
     {
+        /*
         if (isMove)
         {
             isMove = false;
@@ -118,7 +137,7 @@ public class Done_PlayerController : NetworkBehaviour
         {
             horizontalAxis = 0;
             vertiacalAxis = 0;
-        }
+        }*/
 
         if (isLocalPlayer)
         {

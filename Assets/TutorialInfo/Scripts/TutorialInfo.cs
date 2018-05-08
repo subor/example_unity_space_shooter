@@ -39,6 +39,7 @@ public class TutorialInfo : MonoBehaviour
 
     private void RuyiInputListener()
     {
+        //Debug.Log("RuyiInputListener m_IsBtnSelectedChanged:" + m_IsBtnSelectedChanged + " m_IsEnter:" + m_IsEnter);
         if (m_IsBtnSelectedChanged)
         {
             m_IsBtnSelectedChanged = false;
@@ -75,35 +76,42 @@ public class TutorialInfo : MonoBehaviour
         //TriggerKeys 
         //DeviceType: to identify your input device
         //Key: the key of your input device
+        //action: is the value of the "action" key in the config files which developers can modify on their need
         //NewValue/OldValue:  could be three value:0,1,2.  1 means press Down 2 means release 0 not define yet
         //NewValue is the current key state, if your press down, NewValue will be 1, when you release, NewValue will be 2, OldValue will be 1
         for (int i = 0; i < msg.Triggers.Count; ++i)
         {
-            Debug.Log("TutorialInfo RuyiInputStateChangeHandler key:" + msg.Triggers[i].Key + " newValue:" + msg.Triggers[i].NewValue);
+            
+            Debug.Log("TutorialInfo RuyiInputStateChangeHandler topic:" + topic + " action:" + msg.Action + " key:" + msg.Triggers[i].Key + " newValue:" + msg.Triggers[i].NewValue);
+
+            //temporary filter the unnecessary input event, we'll optilize this part later
+            if (msg.Action.Contains("UI")) continue;
+
+            Debug.Log("TutorialInfo RuyiInputStateChangeHandler filter topic:" + topic + " action:" + msg.Action + " key:" + msg.Triggers[i].Key + " newValue:" + msg.Triggers[i].NewValue);
 
             if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.Up == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonUp == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogLeftJoyY == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue))
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonUp == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogLeftJoyY == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
             {
                 --m_BtnSelected;
                 m_IsBtnSelectedChanged = true;
             }
             if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.Down == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonDown == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogRightJoyY == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue))
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonDown == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogRightJoyY == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
             {
                 ++m_BtnSelected;
                 m_IsBtnSelectedChanged = true;
             }
 
             if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.A == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonStart == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue))
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonA == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
             {
                 m_IsEnter = true;
             }
 
             if ((int)Ruyi.SDK.GlobalInputDefine.Key.S == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonX == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue))
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonX == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
             {
                 m_IsReturn = true;
             }
