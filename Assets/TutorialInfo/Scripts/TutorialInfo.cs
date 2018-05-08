@@ -32,7 +32,7 @@ public class TutorialInfo : MonoBehaviour
         ruyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.UserServiceExternal.InputActionEvent>(RuyiInputStateChangeHandler);
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         RuyiInputListener();      
     }
