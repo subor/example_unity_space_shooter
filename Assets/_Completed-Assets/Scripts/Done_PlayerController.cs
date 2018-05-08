@@ -68,6 +68,50 @@ public class Done_PlayerController : NetworkBehaviour
         {
             Debug.Log("Done_PlayerController topic:" + topic + " RuyiInputStateChangeHandler key:" + msg.Triggers[i].Key + " newValue:" + msg.Triggers[i].NewValue);
 
+            //press Down
+            if (msg.Action.Equals("GamePad_Left") && 1 == msg.Triggers[i].NewValue)
+            {
+                horizontalAxis = -1;
+            }
+            //release
+            if (msg.Action.Equals("GamePad_Left") && 2 == msg.Triggers[i].NewValue)
+            {
+                horizontalAxis = 0;
+            }
+
+            if (msg.Action.Equals("GamePad_Right") && 1 == msg.Triggers[i].NewValue)
+            {
+                horizontalAxis = 1;
+            }
+            if (msg.Action.Equals("GamePad_Right") && 2 == msg.Triggers[i].NewValue)
+            {
+                horizontalAxis = 0;
+            }
+
+            if (msg.Action.Equals("GamePad_Up") && 1 == msg.Triggers[i].NewValue)
+            {
+                vertiacalAxis = 1;
+            }
+            if (msg.Action.Equals("GamePad_Up") && 2 == msg.Triggers[i].NewValue)
+            {
+                vertiacalAxis = 0;
+            }
+
+            if (msg.Action.Equals("GamePad_Down") && 1 == msg.Triggers[i].NewValue)
+            {
+                vertiacalAxis = -1;
+            }
+            if (msg.Action.Equals("GamePad_Down") && 2 == msg.Triggers[i].NewValue)
+            {
+                vertiacalAxis = 0;
+            }
+
+            //fire
+            if (msg.Action.Equals("GamePad_X") && 1 == msg.Triggers[i].NewValue)
+            {
+                isFire = true;
+            }
+            /*
             if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.Left == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
                 || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonLeft == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
                 || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogLeftJoyX == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
@@ -119,7 +163,7 @@ public class Done_PlayerController : NetworkBehaviour
                 || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonB == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
             {
                 isFire = true;
-            }
+            }*/
         }
     }
 
@@ -165,6 +209,8 @@ public class Done_PlayerController : NetworkBehaviour
 
     private void Update ()
 	{
+        RuyiInputValueListener();
+
         if (isLocalPlayer)
         {
             if (Input.GetButton("Fire" + PlayerIndex) && 
@@ -178,7 +224,6 @@ public class Done_PlayerController : NetworkBehaviour
 
 	private void FixedUpdate ()
 	{
-        RuyiInputValueListener();
         /*
         if (isLocalPlayer)
         {
