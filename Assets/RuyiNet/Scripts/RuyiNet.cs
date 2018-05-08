@@ -98,7 +98,7 @@ public class RuyiNet : MonoBehaviour
     public RuyiNetProfile ActivePlayer { get { return mSDK.RuyiNetService.ActivePlayer; } }
     public RuyiNetLobby CurrentLobby { get { return LobbyService.CurrentLobby; } }
     public string CurrentLobbyId { get { return CurrentLobby.LobbyId; } }
-
+    public Layer0.SubscribeClient Subscribe { get { return mSDK.Subscriber; } }
     public int ActivePlayerIndex { get { return mSDK.RuyiNetService.ActivePlayerIndex; } }
 
     public bool NewUser { get { return mSDK.RuyiNetService.NewUser; } }
