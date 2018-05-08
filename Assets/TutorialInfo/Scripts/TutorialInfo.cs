@@ -81,23 +81,29 @@ public class TutorialInfo : MonoBehaviour
         {
             Debug.Log("TutorialInfo RuyiInputStateChangeHandler key:" + msg.Triggers[i].Key + " newValue:" + msg.Triggers[i].NewValue);
 
-            if ((int)Ruyi.SDK.GlobalInputDefine.Key.Up == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+            if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.Up == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonUp == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogLeftJoyY == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue))
             {
                 --m_BtnSelected;
                 m_IsBtnSelectedChanged = true;
             }
-            if ((int)Ruyi.SDK.GlobalInputDefine.Key.Down == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+            if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.Down == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonDown == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogRightJoyY == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue))
             {
                 ++m_BtnSelected;
                 m_IsBtnSelectedChanged = true;
             }
 
-            if ((int)Ruyi.SDK.GlobalInputDefine.Key.A == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+            if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.A == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonStart == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue))
             {
                 m_IsEnter = true;
             }
 
-            if ((int)Ruyi.SDK.GlobalInputDefine.Key.S == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+            if ((int)Ruyi.SDK.GlobalInputDefine.Key.S == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonX == msg.Triggers[i].Key || 1 == msg.Triggers[i].NewValue))
             {
                 m_IsReturn = true;
             }
