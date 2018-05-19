@@ -1,4 +1,5 @@
 ﻿using Ruyi;
+using Ruyi.SDK.Online;
 using System;
 using System.Collections;
 using System.Collections.Generic;

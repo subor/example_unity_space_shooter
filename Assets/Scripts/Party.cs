@@ -1,4 +1,5 @@
 ﻿using Ruyi;
+using Ruyi.SDK.Online;
 using UnityEngine;
 using UnityEngine.UI;
 
