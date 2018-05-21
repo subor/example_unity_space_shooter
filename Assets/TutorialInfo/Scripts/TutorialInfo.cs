@@ -1,4 +1,4 @@
-using Ruyi;
+using Ruyi.Layer0;
 using Ruyi.SDK.Online;
 using UnityEngine;
 
@@ -29,7 +29,7 @@ public class TutorialInfo : MonoBehaviour
 
         //our input event is listener in sub-thread, in which you can't directly renderer UnityEngine Object (you can't use any UnityEngine-related object in sub-thread)
         //you can use middle values £¨int,float,string,etc,non-UnityEngine-ojbect-type£© to receive the RuyiSDK input value, then listen it in UnityEngine's main thread (Monobehaviour.update(), etc)
-        ruyiNet.Subscribe.Subscribe("service/" + Layer0.ServiceIDs.USER_SERVICE_EXTERNAL.ToString().ToLower());
+        ruyiNet.Subscribe.Subscribe("service/" + ServiceIDs.USER_SERVICE_EXTERNAL.ToString().ToLower());
         ruyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.UserServiceExternal.InputActionEvent>(RuyiInputStateChangeHandler);
     }
 

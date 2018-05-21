@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Ruyi.Layer0;
+using UnityEngine;
 using UnityEngine.Networking;
 
 [System.Serializable]
@@ -33,7 +34,7 @@ public class Done_PlayerController : NetworkBehaviour
                 ruyiProfileId = activePlayer.profileId;
                 ruyiProfileName = activePlayer.profileName;
             }
-            ruyiNet.Subscribe.Subscribe("service/" + Layer0.ServiceIDs.USER_SERVICE_EXTERNAL.ToString().ToLower());
+            ruyiNet.Subscribe.Subscribe("service/" + ServiceIDs.USER_SERVICE_EXTERNAL.ToString().ToLower());
             ruyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.UserServiceExternal.InputActionEvent>(RuyiInputStateChangeHandler);
         }
 

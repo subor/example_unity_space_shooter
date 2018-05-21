@@ -1,4 +1,3 @@
-﻿using Ruyi;
 using Ruyi.SDK.BrainCloudApi;
 using Ruyi.SDK.Online;
 using UnityEngine.UI;
