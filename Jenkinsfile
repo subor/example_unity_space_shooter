@@ -98,10 +98,8 @@ pipeline {
 					step([$class:'CopyArtifact',filter:'RuyiSDK.nf2.0/**/*,DevTools_Internal/**/*',target:"${TEMP_DIR}",projectName: "${jobName}",selector: sel])
 					
 					bat """
-						md ${DEMO_SDKCPP_ROOT}\\lib
-						xcopy ${RUYI_SDK_CPP}\\lib\\* /s /i /y ${DEMO_SDKCPP_ROOT}\\lib\\*
-						md ${DEMO_SDKCPP_ROOT}\\include
-						xcopy ${RUYI_SDK_CPP}\\include\\* /s /i /y ${DEMO_SDKCPP_ROOT}\\include\\*
+						md ${DEMO_SDKCPP_ROOT}
+						xcopy ${RUYI_SDK_CPP}/** /s /i /y ${DEMO_SDKCPP_ROOT}/**
 					"""
 				}
 			}
