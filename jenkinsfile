@@ -40,7 +40,7 @@ pipeline {
 		//Unity Demo Root
 		DEMO_PROJECT_ROOT = "space_shooter"
 		//DEMO SDK CPP folder
-		DEMO_SDKCPP_ROOT = "${TEMP_DIR}RuyiSDKDemo"
+		DEMO_SDKCPP_ROOT = "${TEMP_DIR}\\RuyiSDKDemo"
 		//Unity packed target
 		COOKED_ROOT = "${DEMO_PROJECT_ROOT}/Pack"
 		//Archive root
