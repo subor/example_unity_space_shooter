@@ -30,17 +30,17 @@ pipeline {
 		//Nuget Packages home
 		NUGET_PACKAGES = "c:/jenkins/packages"
 		//Unity Engine root
-		UE_ROOT = "C:/Program Files/Epic Games/UE_4.18/Engine"
+		UE_ROOT = "C:/Jenkins/tools/Unity/Editor"
 		//Temp folder
 		TEMP_DIR = 'temp'
 		//Ruyi SDK CPP folder
-		RUYI_SDK_CPP = "${TEMP_DIR}\\archives\\RuyiSDKCpp"
+		RUYI_SDK_CPP = "${TEMP_DIR}\\RuyiSDK.nf2.0"
 		//Ruyi DevTools folder
-		RUYI_DEV_ROOT = "${TEMP_DIR}\\archives\\DevTools_Internal"
+		RUYI_DEV_ROOT = "${TEMP_DIR}\\DevTools_Internal"
 		//Unity Demo Root
-		DEMO_PROJECT_ROOT = "unity_demo"
+		DEMO_PROJECT_ROOT = "space_shooter"
 		//DEMO SDK CPP folder
-		DEMO_SDKCPP_ROOT = "${DEMO_PROJECT_ROOT}\\Source\\RuyiSDKDemo"
+		DEMO_SDKCPP_ROOT = "${TEMP_DIR}RuyiSDKDemo"
 		//Unity packed target
 		COOKED_ROOT = "${DEMO_PROJECT_ROOT}/Pack"
 		//Archive root
@@ -60,7 +60,7 @@ pipeline {
 					if(env.BRANCH_NAME == null && params.CLEAN_BUILD){
 						deleteDir()
 					}else{
-						step([$class: 'WsCleanup', patterns: [[pattern: "**/Binaries/**/**", type: 'INCLUDE'],[pattern: "**/Pack/RuyiSDKDemo/**/**", type: 'INCLUDE'],[pattern: "**/Source/RuyiSDKDemo/lib/**/**", type: 'INCLUDE'],[pattern: "**/Source/RuyiSDKDemo/include/**/**", type: 'INCLUDE'],[pattern: "**/.git/*.lock", type: 'INCLUDE']]])
+						step([$class: 'WsCleanup', patterns: [[pattern: "**/Binaries/**/**", type: 'INCLUDE'],[pattern: "**/Pack/RuyiSDKDemo/**/**", type: 'INCLUDE'],[pattern: "**/Source/RuyiSDKDemo/include/**/**", type: 'INCLUDE'],[pattern: "**/.git/*.lock", type: 'INCLUDE']]])
 					}
 									
 					checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches:  scm.branches,
@@ -116,33 +116,6 @@ pipeline {
 			}
 		}
 		
-		stage('Build Libs'){
-			steps{
-				//1.Generate VS project file
-				bat """
-					chcp ${WIN_CMD_ENCODING} 
-					"${UE_ROOT}/Binaries/DotNET/UnrealBuildTool.exe" -projectfiles -project="${workspace}/${DEMO_PROJECT_ROOT}/RuyiSDKDemo.uproject" -CurrentPlatform -2017 -game -rocket -progress
-				"""
-				withEnv(["PATH+NUGET_PACKAGES=${NUGET_PACKAGES}"]){
-					//2.VS Build target - Development & Shipping in Win64 platform
-					bat """
-						chcp ${WIN_CMD_ENCODING}
-						"${tool 'MSBuild'}" "${DEMO_PROJECT_ROOT}\\RuyiSDKDemo.sln" /t:restore;build /m:4 /p:Configuration="Development Editor" /p:Platform="Win64"
-						"${tool 'MSBuild'}" "${DEMO_PROJECT_ROOT}\\RuyiSDKDemo.sln" /t:restore;build /m:4 /p:Configuration=Development /p:Platform="Win64"
-						"${tool 'MSBuild'}" "${DEMO_PROJECT_ROOT}\\RuyiSDKDemo.sln" /t:restore;build /m:4 /p:Configuration=Shipping /p:Platform="Win64"
-					"""
-				}
-			}
-			
-			post {
-				success {
-					stage_success env.STAGE_NAME
-				}
-				failure {
-					stage_failed env.STAGE_NAME
-				}
-			}
-		}
 		
 		stage('Cook Demo'){
 			steps{
