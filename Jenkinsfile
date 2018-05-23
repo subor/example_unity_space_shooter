@@ -43,9 +43,9 @@ pipeline {
 		DEMO_PROJECT_ROOT = "space_shooter"
 		
         //ASSETS_PLUGINS folder
-        ASSETS_PLUGINS="Assets\plugins\x64"
+        ASSETS_PLUGINS="${DEMO_PROJECT_ROOT}\\Assets\\plugins\\x64"
         //ASSETS_SCRIPTS folder
-        SSETS_SCRIPTS="Assets\RuyiNet\Scripts"
+        SSETS_SCRIPTS="${DEMO_PROJECT_ROOT}\\Assets\\RuyiNet\\Scripts"
         //TEMP_PLUGINS folder
         TEMP_PLUGINS="${TEMP_DIR}\\${ASSETS_PLUGINS}"
         //TEMP_SCRIPTS folder
@@ -222,22 +222,6 @@ pipeline {
 		}
 	}
 	
-	post{
-		failure{
-			script{
-				if(env.FAILURE_STAGE==null)
-					env.FAILURE_STAGE = 'Unknown'
-
-				if(params.MAIL_ON_FAILED){
-					emailext mimeType:"text/html",
-						 replyTo:"Jenkins@playruyi.com",
-						 subject:"\u2639 ${env.JOB_NAME} #${env.BUILD_NUMBER} failed in [${env.FAILURE_STAGE}] stage.",
-						 to:"${MAIL_RECIPIENT}",
-						 body:'${JELLY_SCRIPT,template="jenkins-email-ext-clangScanReport-template.jelly"}'
-				}
-			}
-		}
-	}
 }
 
 void stage_success(stage){
