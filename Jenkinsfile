@@ -105,7 +105,7 @@ pipeline {
 					if(params.REF_BUILD_NUMBER?.trim())
 						sel = specific("${params.REF_BUILD_NUMBER}")
 						
-					step([$class:'CopyArtifact',filter:'RuyiSDK.nf2.0/**/*,RuyiSDKUnity/**/*',DevTools_Internal/**/*',target:"${TEMP_DIR}",projectName: "${jobName}",selector: sel])
+					step([$class:'CopyArtifact',filter:'RuyiSDK.nf2.0/**/*,RuyiSDKUnity/**/*,DevTools_Internal/**/*',target:"${TEMP_DIR}",projectName: "${jobName}",selector: sel])
 					
 					bat """
 						md ${TEMP_PLUGINS}
