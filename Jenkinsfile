@@ -35,12 +35,22 @@ pipeline {
 		TEMP_DIR = 'temp'
 		//Ruyi SDK CPP folder
 		RUYI_SDK_CPP = "${TEMP_DIR}\\RuyiSDK.nf2.0"
+		//Ruyi SDK DEMO folder
+		RUYI_SDK_DEMO = "${TEMP_DIR}\\RuyiSDKUnity"
 		//Ruyi DevTools folder
 		RUYI_DEV_ROOT = "${TEMP_DIR}\\DevTools_Internal"
 		//Unity Demo Root
 		DEMO_PROJECT_ROOT = "space_shooter"
-		//DEMO SDK CPP folder
-		DEMO_SDKCPP_ROOT = "${TEMP_DIR}\\RuyiSDKDemo"
+		
+        //ASSETS_PLUGINS folder
+        ASSETS_PLUGINS="Assets\plugins\x64"
+        //ASSETS_SCRIPTS folder
+        SSETS_SCRIPTS="Assets\RuyiNet\Scripts"
+        //TEMP_PLUGINS folder
+        TEMP_PLUGINS="${TEMP_DIR}\\${ASSETS_PLUGINS}"
+        //TEMP_SCRIPTS folder
+        EMP_SCRIPTS="${TEMP_DIR}\\${ASSETS_SCRIPTS}"
+		
 		//Unity packed target
 		COOKED_ROOT = "${DEMO_PROJECT_ROOT}/Pack"
 		//Archive root
@@ -95,11 +105,13 @@ pipeline {
 					if(params.REF_BUILD_NUMBER?.trim())
 						sel = specific("${params.REF_BUILD_NUMBER}")
 						
-					step([$class:'CopyArtifact',filter:'RuyiSDK.nf2.0/**/*,DevTools_Internal/**/*',target:"${TEMP_DIR}",projectName: "${jobName}",selector: sel])
+					step([$class:'CopyArtifact',filter:'RuyiSDK.nf2.0/**/*,RuyiSDKUnity/**/*',DevTools_Internal/**/*',target:"${TEMP_DIR}",projectName: "${jobName}",selector: sel])
 					
 					bat """
-						md ${DEMO_SDKCPP_ROOT}
-						xcopy ${RUYI_SDK_CPP}/** /s /i /y ${DEMO_SDKCPP_ROOT}/**
+						md ${TEMP_PLUGINS}
+						md ${EMP_SCRIPTS}
+						xcopy ${RUYI_SDK_CPP}/** /s /i /y ${TEMP_PLUGINS}/**
+						xcopy ${RUYI_SDK_DEMO}/** /s /i /y ${EMP_SCRIPTS}/**
 					"""
 				}
 			}
