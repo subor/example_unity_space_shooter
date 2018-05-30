@@ -34,22 +34,23 @@ pipeline {
 		//Temp folder
 		TEMP_DIR = 'temp'
 		//Ruyi SDK CPP folder
-		RUYI_SDK_CPP = "${TEMP_DIR}\\RuyiSDK.nf2.0"
+		//RUYI_SDK_CPP = "${TEMP_DIR}\\RuyiSDK.nf2.0"
+		RUYI_SDK_CPP = "TEMP_DIR\\RuyiSDK.nf2.0"		
 		//Ruyi SDK DEMO folder
-		RUYI_SDK_DEMO = "${TEMP_DIR}\\RuyiSDKUnity"
+		//RUYI_SDK_DEMO = "${TEMP_DIR}\\RuyiSDKUnity"
+		RUYI_SDK_DEMO = "${RuyiSDKUnityCS}\\jade\\sdk\\RuyiSDKUnity"
 		//Ruyi DevTools folder
-		RUYI_DEV_ROOT = "${TEMP_DIR}\\DevTools_Internal"
+		//RUYI_DEV_ROOT = "${TEMP_DIR}\\DevToolsInternal"
+		RUYI_DEV_ROOT = "TEMP_DIR\\DevToolsInternal"
 		//Unity Demo Root
 		DEMO_PROJECT_ROOT = "space_shooter"
 		
+		//RuyiSDKUnityCS Root
+		RuyiSDKUnityCS = "RuyiSDKUnityCS"
         //ASSETS_PLUGINS folder
         ASSETS_PLUGINS="${DEMO_PROJECT_ROOT}\\Assets\\plugins\\x64"
         //ASSETS_SCRIPTS folder
-        SSETS_SCRIPTS="${DEMO_PROJECT_ROOT}\\Assets\\RuyiNet\\Scripts"
-        //TEMP_PLUGINS folder
-        TEMP_PLUGINS="${TEMP_DIR}\\${ASSETS_PLUGINS}"
-        //TEMP_SCRIPTS folder
-        EMP_SCRIPTS="${TEMP_DIR}\\${ASSETS_SCRIPTS}"
+        ASSETS_SCRIPTS="${DEMO_PROJECT_ROOT}\\Assets\\RuyiNet\\Scripts"
 		
 		//Unity packed target
 		COOKED_ROOT = "${DEMO_PROJECT_ROOT}/Pack"
@@ -83,6 +84,18 @@ pipeline {
 						 submoduleCfg: [], 
 						 userRemoteConfigs: [[credentialsId: scm.userRemoteConfigs[0].credentialsId, url: scm.userRemoteConfigs[0].url]]
 					]
+					
+					checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches:  [[name: 'development']],
+						 doGenerateSubmoduleConfigurations: false, extensions: [
+							[$class: 'SparseCheckoutPaths', sparseCheckoutPaths: [[path: 'jade/sdk/RuyiSDKUnity']]],
+							[$class: 'RelativeTargetDirectory', relativeTargetDir: "${RuyiSDKUnityCS}"],
+							[$class: 'CleanBeforeCheckout'],
+							[$class: 'CheckoutOption', timeout: 60],
+							[$class: 'CloneOption', honorRefspec: true, depth: 0, noTags: true, reference: '', shallow: true,timeout: 60]
+						 ], 
+						 submoduleCfg: [], 
+						 userRemoteConfigs: [[credentialsId:"credential_access_bitbucket", url: "http://bitbucket:7990/scm/ruyi/jade.git"]]
+					]
 				}
 			}
 			
@@ -105,13 +118,13 @@ pipeline {
 					if(params.REF_BUILD_NUMBER?.trim())
 						sel = specific("${params.REF_BUILD_NUMBER}")
 						
-					step([$class:'CopyArtifact',filter:'RuyiSDK.nf2.0/**/*,RuyiSDKUnity/**/*,DevTools_Internal/**/*',target:"${TEMP_DIR}",projectName: "${jobName}",selector: sel])
-					
+					//step([$class:'CopyArtifact',filter:'RuyiSDK.nf2.0/**/*,DevTools_Internal/**/*',target:"${TEMP_DIR}",projectName: "${jobName}",selector: sel])
+					//step([$class:'CopyArtifact',filter:'RuyiSDK.nf2.0/**/*,DevToolsInternal/**/*', projectName: 'RUYI-Platform-CleanBuild', selector: sel, target: '${TEMP_DIR}'])
+                    step([$class:'CopyArtifact',filter:'RuyiSDK.nf2.0/**/*,DevToolsInternal/**/*', projectName: 'RUYI-Platform-CleanBuild', selector: sel, target:"${TEMP_DIR}"])
 					bat """
-						md ${TEMP_PLUGINS}
-						md ${EMP_SCRIPTS}
-						xcopy ${RUYI_SDK_CPP}/** /s /i /y ${TEMP_PLUGINS}/**
-						xcopy ${RUYI_SDK_DEMO}/** /s /i /y ${EMP_SCRIPTS}/**
+						xcopy ${TEMP_DIR}\\RuyiSDK.nf2.0\\* ${ASSETS_PLUGINS}\\* /s /i /y
+						xcopy RuyiSDKUnityCS\\jade\\sdk\\RuyiSDKUnity\\* ${ASSETS_SCRIPTS}\\* /s /i /y
+						
 					"""
 				}
 			}
@@ -132,17 +145,11 @@ pipeline {
 				//Cook
 				bat """
 					chcp ${WIN_CMD_ENCODING}
-					del ${DEMO_PROJECT_ROOT}\\Pack.zip /F /Q
-					"${UE_ROOT}/Build/BatchFiles/RunUAT.bat" BuildCookRun -project="${workspace}/${DEMO_PROJECT_ROOT}/RuyiSDKDemo.uproject" -noP4 -platform=Win64 -clientconfig=Development -serverconfig=Development -cook -maps=AllMaps --NoCompile -stage -pak -archive -archivedirectory="${workspace}/${COOKED_ROOT}"
+					${UE_ROOT}\\Unity.exe -quit -batchmode -projectPath=${DEMO_PROJECT_ROOT} -executeMethod BuildScript.PerformBuild -nographics -buildWindows64Player "${COOKED_ROOT}\\test.exe"
 				"""
 				
 				//Rename & Copy runtime dependencies
-				bat """
-					chcp ${WIN_CMD_ENCODING}
-					rd ${COOKED_ROOT.replaceAll('/','\\\\')}\\RuyiSDKDemo /S /Q
-					ren ${COOKED_ROOT.replaceAll('/','\\\\')}\\WindowsNoEditor RuyiSDKDemo
-					xcopy ${RUYI_SDK_CPP}\\lib\\zmq\\libzmq.dll ${COOKED_ROOT.replaceAll('/','\\\\')}\\RuyiSDKDemo /i /y
-				"""
+
 			}
 			
 			post {
