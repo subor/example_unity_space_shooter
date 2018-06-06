@@ -1,5 +1,7 @@
-using Ruyi;
+using Ruyi.SDK.Online;
 using UnityEngine;
+
+using XInputDotNetPure;
 
 // Hi! This script presents the overlay info for our tutorial content, linking you back to the relevant page.
 public class TutorialInfo : MonoBehaviour 
@@ -15,6 +17,11 @@ public class TutorialInfo : MonoBehaviour
     private bool m_IsEnter = false;
     private bool m_IsReturn = false;
 
+    private GamePadState m_GamePadState;
+
+    private bool m_IsLJoystickUp = false;
+    private bool m_IsLJoystickDown = false; 
+
     void Awake()
     {
         ShowLaunchScreen();
@@ -28,19 +35,97 @@ public class TutorialInfo : MonoBehaviour
 
         //our input event is listener in sub-thread, in which you can't directly renderer UnityEngine Object (you can't use any UnityEngine-related object in sub-thread)
         //you can use middle values £¨int,float,string,etc,non-UnityEngine-ojbect-type£© to receive the RuyiSDK input value, then listen it in UnityEngine's main thread (Monobehaviour.update(), etc)
-        ruyiNet.Subscribe.Subscribe("service/" + Layer0.ServiceIDs.USER_SERVICE_EXTERNAL.ToString().ToLower());
-        ruyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.UserServiceExternal.InputActionEvent>(RuyiInputStateChangeHandler);
+        //ruyiNet.Subscribe.Subscribe("service/" + Ruyi.Layer0.ServiceIDs.USER_SERVICE_EXTERNAL.ToString().ToLower());
+        //ruyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.UserServiceExternal.InputActionEvent>(RuyiInputStateChangeHandler);
+        //ruyiNet.Subscribe.Subscribe("service/" + Ruyi.Layer0.ServiceIDs.INPUTMANAGER_INTERNAL.ToString().ToLower());
+        ruyiNet.Subscribe.Subscribe("service/inputmgr_int");
+        ruyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.InputManager.RuyiGamePadInput>(RuyiGamePadInputListener);
+        ruyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.InputManager.RuyiKeyboardInput>(RuyiKeyboardInputListener);
+        ruyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.InputManager.RuyiMouseInput>(RuyiMouseInputListener);
+
+        //Debug.Log("TutorialInfo Start !!!");
+    }
+
+    void RuyiGamePadInputListener(string topic, Ruyi.SDK.InputManager.RuyiGamePadInput msg)
+    {       
+        float leftThumbX = MappingThumbValue(msg.LeftThumbX);
+        float leftThumbY = MappingThumbValue(msg.LeftThumbY);
+
+        //leftThumbX(Y) value ranges from -1 to 1 which represents joystick left to right
+        //generally abs(leftThumbx(Y)) samller than 0.1 means release the joystick
+
+        //Debug.Log("RuyiGamePadInputListener RuyiGamePadInput LeftThumbX:" + leftThumbX);
+        //Debug.Log("RuyiGamePadInputListener RuyiGamePadInput LeftThumbX:" + leftThumbY);
+
+        Debug.Log("RuyiGamePadInputListener RuyiGamePadInput ButtonFlags:" + msg.ButtonFlags);
+
+        // add condition ture == m_IsLJoystickDown to avoid repeated operation 
+        // because joystick event will call continuesly while pushing the joystick
+        // you need to filter the message according to your logic
+        if (leftThumbY <= -0.5f && !m_IsLJoystickDown)
+        {
+            m_IsLJoystickDown = true;
+            ++m_BtnSelected;
+            m_IsBtnSelectedChanged = true;
+        }
+        if (leftThumbY >= 0.5f && !m_IsLJoystickUp)
+        {
+            m_IsLJoystickUp = true;
+            --m_BtnSelected;
+            m_IsBtnSelectedChanged = true;
+        }
+        //release the joystick
+        if (Mathf.Abs(leftThumbY) < 0.1f)
+        {
+            m_IsLJoystickUp = false;
+            m_IsLJoystickDown = false;
+        }
+
+        if ((int)Ruyi.SDK.CommonType.RuyiGamePadButtonFlags.GamePad_Up == msg.ButtonFlags)
+        {
+            --m_BtnSelected;
+            m_IsBtnSelectedChanged = true;
+        }
+        if ((int)Ruyi.SDK.CommonType.RuyiGamePadButtonFlags.GamePad_Down == msg.ButtonFlags)
+        {
+            ++m_BtnSelected;
+            m_IsBtnSelectedChanged = true;
+        }
+        if ((int)Ruyi.SDK.CommonType.RuyiGamePadButtonFlags.GamePad_A == msg.ButtonFlags)
+        {
+            m_IsEnter = true;
+        }
+        if ((int)Ruyi.SDK.CommonType.RuyiGamePadButtonFlags.GamePad_B == msg.ButtonFlags)
+        {
+            m_IsReturn = true;
+        }
+    }
+
+    void RuyiKeyboardInputListener(string topic, Ruyi.SDK.InputManager.RuyiKeyboardInput msg)
+    {
+        //Debug.Log("TutorialInfo RuyiKeyboardInputListener topic:" + topic);
+    }
+
+    void RuyiMouseInputListener(string topic, Ruyi.SDK.InputManager.RuyiMouseInput msg)
+    {
+        //Debug.Log("TutorialInfo RuyiMouseInputListener topic:" + topic);
+    }
+
+    private float MappingThumbValue(float value)
+    {
+        return value / Mathf.Pow(2f, 15);
     }
 
     //if use fixedupdate may lead to no response
     void Update()
     {
         RuyiInputListener();      
-    }
+    }  
 
     private void RuyiInputListener()
     {
-        Debug.Log("RuyiInputListener m_IsBtnSelectedChanged:" + m_IsBtnSelectedChanged + " m_IsEnter:" + m_IsEnter);
+        
+        //Debug.Log("RuyiInputListener m_IsBtnSelectedChanged:" + m_IsBtnSelectedChanged + " m_IsEnter:" + m_IsEnter);
         if (m_IsBtnSelectedChanged)
         {
             m_IsBtnSelectedChanged = false;
@@ -108,8 +193,27 @@ public class TutorialInfo : MonoBehaviour
         //GamePad_RJoyY
         for (int i = 0; i < msg.Triggers.Count; ++i)
         {           
-            Debug.Log("TutorialInfo RuyiInputStateChangeHandler topic:" + topic + " action:" + msg.Action + " key:" + msg.Triggers[i].Key + " newValue:" + msg.Triggers[i].NewValue);
-           
+            //Debug.Log("TutorialInfo RuyiInputStateChangeHandler topic:" + topic + " action:" + msg.Action + " key:" + msg.Triggers[i].Key + " newValue:" + msg.Triggers[i].NewValue);
+            if (msg.Action.Equals("GamePad_LJoyX"))
+            {
+                byte axisValue = (byte)msg.Triggers[i].NewValue;
+                //Debug.Log("TutorialInfo GamePad_LJoyX value:" + axisValue);
+            }
+            if (msg.Action.Equals("GamePad_RJoyX"))
+            {
+                byte axisValue = (byte)msg.Triggers[i].NewValue;
+                //Debug.Log("TutorialInfo GamePad_RJoyX value:" + axisValue);
+            }
+            if (msg.Action.Equals("GamePad_LJoyY"))
+            {
+                byte axisValue = (byte)msg.Triggers[i].NewValue;
+                Debug.Log("TutorialInfo GamePad_LJoyY value:" + axisValue);
+            }
+            if (msg.Action.Equals("GamePad_RJoyY"))
+            {
+                byte axisValue = (byte)msg.Triggers[i].NewValue;
+                //Debug.Log("TutorialInfo GamePad_RJoyY value:" + axisValue);
+            }
             if (msg.Action.Equals("GamePad_Up") && 1 == msg.Triggers[i].NewValue)
             {
                 --m_BtnSelected;
@@ -127,34 +231,7 @@ public class TutorialInfo : MonoBehaviour
             if (msg.Action.Equals("GamePad_B") && 1 == msg.Triggers[i].NewValue)
             {
                 m_IsReturn = true;
-            }
-            /*
-            if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.Up == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonUp == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogLeftJoyY == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
-            {
-                --m_BtnSelected;
-                m_IsBtnSelectedChanged = true;
-            }
-            if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.Down == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonDown == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogRightJoyY == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
-            {
-                ++m_BtnSelected;
-                m_IsBtnSelectedChanged = true;
-            }
-
-            if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.A == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonA == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
-            {
-                m_IsEnter = true;
-            }
-
-            if ((int)Ruyi.SDK.GlobalInputDefine.Key.S == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue
-                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonX == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
-            {
-                m_IsReturn = true;
-            }*/
+            }          
         }
     }
 
@@ -189,12 +266,15 @@ public class TutorialInfo : MonoBehaviour
 
     private void OnRuyiNetInitialised()
     {
-        var ruyiNet = FindObjectOfType<RuyiNet>();
+        Debug.Log("TutorialInfo OnRuyiNetInitialised");
+
+        var ruyiNet = FindObjectOfType<RuyiNet>();      
         ruyiNet.ForEachPlayer((int index, RuyiNetProfile profile) =>
         {
+            //Debug.Log("index:" + index + " profile " + profile.profileId);
             if (profile != null)
             {
-                Debug.Log("GC: Player " + index);
+                //Debug.Log("GC: Player " + index);
                 //if (ruyiNet.LeaderboardService != null)
                 {
                     //    ruyiNet.LeaderboardService.CreateLeaderboard(index, "Shooter", RuyiNetLeaderboardType.HIGH_VALUE, RuyiNetRotationType.MONTHLY, null);

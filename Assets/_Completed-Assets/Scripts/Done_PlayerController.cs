@@ -33,14 +33,98 @@ public class Done_PlayerController : NetworkBehaviour
                 ruyiProfileId = activePlayer.profileId;
                 ruyiProfileName = activePlayer.profileName;
             }
-            ruyiNet.Subscribe.Subscribe("service/" + Layer0.ServiceIDs.USER_SERVICE_EXTERNAL.ToString().ToLower());
-            ruyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.UserServiceExternal.InputActionEvent>(RuyiInputStateChangeHandler);
+            //ruyiNet.Subscribe.Subscribe("service/" + Ruyi.Layer0.ServiceIDs.INPUTMANAGER_INTERNAL.ToString().ToLower());
+            ruyiNet.Subscribe.Subscribe("service/inputmgr_int");
+            ruyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.InputManager.RuyiGamePadInput>(RuyiGamePadInputListener);
+            ruyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.InputManager.RuyiKeyboardInput>(RuyiKeyboardInputListener);
+            ruyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.InputManager.RuyiMouseInput>(RuyiMouseInputListener);
         }
 
         if (isLocalPlayer)
         {
             CmdRegister(ruyiProfileId, ruyiProfileName);
         }
+    }
+    
+    void RuyiGamePadInputListener(string topic, Ruyi.SDK.InputManager.RuyiGamePadInput msg)
+    {
+        float leftThumbX = MappingThumbValue(msg.LeftThumbX);
+        float leftThumbY = MappingThumbValue(msg.LeftThumbY);
+
+        //Debug.Log("ssss leftThumbX:" + leftThumbX + " leftThumbY:" + leftThumbY);
+
+        //joystick release
+        if (Mathf.Abs(leftThumbX) <= 0.1f)
+        {
+            horizontalAxis = 0;
+        }
+        if (Mathf.Abs(leftThumbY) <= 0.1f)
+        {
+            verticalAxis = 0;
+        }
+
+        //button release
+        if (0 == msg.ButtonFlags)
+        {
+            horizontalAxis = 0;
+            verticalAxis = 0;
+        }
+
+        //pushing joystick
+        if (leftThumbX <= -0.3f)
+        {
+            horizontalAxis = -1;
+        }
+        if (leftThumbX >= 0.3f)
+        {
+            horizontalAxis = 1;
+        }
+        if (leftThumbY <= -0.3f)
+        {
+            verticalAxis = -1;
+        }
+        if (leftThumbY >= 0.3f)
+        {
+            verticalAxis = 1;
+        }
+   
+        //press button
+        if ((int)Ruyi.SDK.CommonType.RuyiGamePadButtonFlags.GamePad_Left == msg.ButtonFlags)
+        {
+            horizontalAxis = -1;
+        }
+        if ((int)Ruyi.SDK.CommonType.RuyiGamePadButtonFlags.GamePad_Right == msg.ButtonFlags)
+        {
+            horizontalAxis = 1;
+        }      
+        if ((int)Ruyi.SDK.CommonType.RuyiGamePadButtonFlags.GamePad_Up == msg.ButtonFlags)
+        {
+            verticalAxis = 1;
+        }
+        if ((int)Ruyi.SDK.CommonType.RuyiGamePadButtonFlags.GamePad_Down == msg.ButtonFlags)
+        {
+            verticalAxis = -1;
+        }
+
+        //fire
+        if ((int)Ruyi.SDK.CommonType.RuyiGamePadButtonFlags.GamePad_X == msg.ButtonFlags)
+        {
+            isFire = true;
+        }
+    }
+    void RuyiKeyboardInputListener(string topic, Ruyi.SDK.InputManager.RuyiKeyboardInput msg)
+    {
+        //Debug.Log("RuyiKeyboardInputListener topic:" + topic);
+    }
+
+    void RuyiMouseInputListener(string topic, Ruyi.SDK.InputManager.RuyiMouseInput msg)
+    {
+        //Debug.Log("RuyiMouseInputListener topic:" + topic);
+    }
+
+    float MappingThumbValue(float value)
+    {
+        return value / Mathf.Pow(2f, 15);
     }
 
     [Command]
@@ -122,20 +206,20 @@ public class Done_PlayerController : NetworkBehaviour
 
             if (msg.Action.Equals("GamePad_Up") && 1 == msg.Triggers[i].NewValue)
             {
-                vertiacalAxis = 1;
+                verticalAxis = 1;
             }
             if (msg.Action.Equals("GamePad_Up") && 2 == msg.Triggers[i].NewValue)
             {
-                vertiacalAxis = 0;
+                verticalAxis = 0;
             }
 
             if (msg.Action.Equals("GamePad_Down") && 1 == msg.Triggers[i].NewValue)
             {
-                vertiacalAxis = -1;
+                verticalAxis = -1;
             }
             if (msg.Action.Equals("GamePad_Down") && 2 == msg.Triggers[i].NewValue)
             {
-                vertiacalAxis = 0;
+                verticalAxis = 0;
             }
 
             //fire
@@ -172,14 +256,14 @@ public class Done_PlayerController : NetworkBehaviour
                 || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonUp == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
                 || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogLeftJoyY == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
             {
-                vertiacalAxis = 1;
+                verticalAxis = 1;
                 isMove = true;
             }
             if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.Down == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
                 || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonDown == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
                 || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogRightJoyY == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
             {
-                vertiacalAxis = -1;
+                verticalAxis = -1;
                 isMove = true;
             }
 
@@ -188,7 +272,7 @@ public class Done_PlayerController : NetworkBehaviour
                 || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonUp == msg.Triggers[i].Key && 2 == msg.Triggers[i].NewValue)
                 || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogRightJoyY == msg.Triggers[i].Key && 2 == msg.Triggers[i].NewValue))
             {
-                vertiacalAxis = 0;
+                verticalAxis = 0;
             }
 
             if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.E == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
@@ -200,7 +284,7 @@ public class Done_PlayerController : NetworkBehaviour
     }
 
     int horizontalAxis = 0;
-    int vertiacalAxis = 0;
+    int verticalAxis = 0;
     bool isMove = false;
     bool isFire = false;
     private void RuyiInputValueListener()
@@ -212,14 +296,14 @@ public class Done_PlayerController : NetworkBehaviour
         } else
         {
             horizontalAxis = 0;
-            vertiacalAxis = 0;
+            verticalAxis = 0;
         }*/
 
         if (isLocalPlayer)
         {
-            Debug.Log("RuyiInputValueListener sssss horizontalAxis:" + horizontalAxis + " vertiacalAxis:" + vertiacalAxis);
+            //Debug.Log("RuyiInputValueListener sssss horizontalAxis:" + horizontalAxis + " verticalAxis:" + verticalAxis);
 
-            Vector3 movement = new Vector3(horizontalAxis, 0.0f, vertiacalAxis);
+            Vector3 movement = new Vector3(horizontalAxis, 0.0f, verticalAxis);
             GetComponent<Rigidbody>().velocity = movement * speed;
 
             GetComponent<Rigidbody>().position = new Vector3
