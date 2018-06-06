@@ -1,5 +1,4 @@
 ﻿using Ruyi;
-using Ruyi.Layer0;
 using Ruyi.SDK.Online;
 using System;
 using UnityEngine;
@@ -118,8 +117,8 @@ public class RuyiNet : MonoBehaviour
     public RuyiNetTelemetryService TelemetryService { get { return mSDK.RuyiNetService.TelemetryService; } }
     public RuyiNetUserFileService UserFileService { get { return mSDK.RuyiNetService.UserFileService; } }
     public RuyiNetVideoService VideoService { get { return mSDK.RuyiNetService.VideoService; } }
-
-    public SubscribeClient Subscribe { get { return mSDK.Subscriber; } }
+    
+    public Ruyi.Layer0.SubscribeClient Subscribe { get { return mSDK.Subscriber; } }
 
     private RuyiSDKContext mSDKContext;
     private RuyiSDK mSDK;

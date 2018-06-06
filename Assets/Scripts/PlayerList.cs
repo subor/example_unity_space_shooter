@@ -1,5 +1,5 @@
+﻿using Ruyi.SDK.Online;
 using Ruyi.SDK.BrainCloudApi;
-using Ruyi.SDK.Online;
 using UnityEngine.UI;
 
 public class PlayerList : Panel
