@@ -34,13 +34,10 @@ pipeline {
 		//Temp folder
 		TEMP_DIR = 'temp'
 		//Ruyi SDK CPP folder
-		//RUYI_SDK_CPP = "${TEMP_DIR}\\RuyiSDK.nf2.0"
 		RUYI_SDK_CPP = "TEMP_DIR\\RuyiSDK.nf2.0"		
 		//Ruyi SDK DEMO folder
-		//RUYI_SDK_DEMO = "${TEMP_DIR}\\RuyiSDKUnity"
 		RUYI_SDK_DEMO = "${RuyiSDKUnityCS}\\jade\\sdk\\RuyiSDKUnity"
 		//Ruyi DevTools folder
-		//RUYI_DEV_ROOT = "${TEMP_DIR}\\DevToolsInternal"
 		RUYI_DEV_ROOT = "TEMP_DIR\\DevToolsInternal"
 		//Unity Demo Root
 		DEMO_PROJECT_ROOT = "space_shooter"
@@ -145,9 +142,8 @@ pipeline {
 				//Cook
 				bat """
 					chcp ${WIN_CMD_ENCODING}
-					${UE_ROOT}\\Unity.exe -quit -batchmode -projectPath=${DEMO_PROJECT_ROOT} -executeMethod BuildScript.PerformBuild -nographics -buildWindows64Player "${COOKED_ROOT}\\test.exe"
+					start /wait ${UE_ROOT.replaceAll('/','\\\\')}\\Unity.exe -quit -batchmode -projectPath=${DEMO_PROJECT_ROOT} -executeMethod BuildScript.PerformBuild -buildWindows64Player Pack\\space_shooter\\space_shooter.exe
 				"""
-				
 				//Rename & Copy runtime dependencies
 
 			}
@@ -164,8 +160,8 @@ pipeline {
 			
 		stage('Pack'){
 			steps{
-				bat """
-					${RUYI_DEV_ROOT}\\RuyiDev.exe AppRunner --pack --appPath="${COOKED_ROOT}"
+            	bat """
+					temp\\DevToolsInternal\\RuyiDev.exe AppRunner --pack --appPath="${COOKED_ROOT}"
 				"""
 			}
 			
