@@ -144,7 +144,6 @@ pipeline {
 					chcp ${WIN_CMD_ENCODING}
 					start /wait ${UE_ROOT.replaceAll('/','\\\\')}\\Unity.exe -quit -batchmode -projectPath=${DEMO_PROJECT_ROOT} -executeMethod BuildScript.PerformBuild -buildWindows64Player Pack\\space_shooter\\space_shooter.exe
 				"""
-				//Rename & Copy runtime dependencies
 
 			}
 			
@@ -162,6 +161,10 @@ pipeline {
 			steps{
             	bat """
 					temp\\DevToolsInternal\\RuyiDev.exe AppRunner --pack --appPath="${COOKED_ROOT}"
+				"""
+				//Rename & Copy runtime dependencies
+				bat """
+					ren ${DEMO_PROJECT_ROOT.replaceAll('/','\\\\')}\\Pack.zip space_shooter.zip
 				"""
 			}
 			
@@ -184,7 +187,7 @@ pipeline {
 						pushd ${DEMO_PROJECT_ROOT}
 						git rev-parse HEAD > ${workspace.replaceAll('/','\\\\')}\\${COMMIT_ID_FILE}
 						popd
-						xcopy ${DEMO_PROJECT_ROOT}\\Pack.zip ${ARCHIVE_ROOT} /i /y
+						xcopy ${DEMO_PROJECT_ROOT}\\space_shooter.zip ${ARCHIVE_ROOT} /i /y
 						exit 0
 					"""
 
