@@ -20,7 +20,9 @@ public class TutorialInfo : MonoBehaviour
     private GamePadState m_GamePadState;
 
     private bool m_IsLJoystickUp = false;
-    private bool m_IsLJoystickDown = false; 
+    private bool m_IsLJoystickDown = false;
+
+    private RuyiNet m_RuyiNet;
 
     void Awake()
     {
@@ -29,16 +31,16 @@ public class TutorialInfo : MonoBehaviour
 
     void Start()
     {
-        loading.SetActive(true);
-        var ruyiNet = FindObjectOfType<RuyiNet>();
-        ruyiNet.Initialise(OnRuyiNetInitialised);
+        //loading.SetActive(true);
+        m_RuyiNet = FindObjectOfType<RuyiNet>();
+        m_RuyiNet.Initialise(OnRuyiNetInitialised);
 
         //our input event is listener in sub-thread, in which you can't directly renderer UnityEngine Object (you can't use any UnityEngine-related object in sub-thread)
         //you can use middle values £¨int,float,string,etc,non-UnityEngine-ojbect-type£© to receive the RuyiSDK input value, then listen it in UnityEngine's main thread (Monobehaviour.update(), etc)
-        ruyiNet.Subscribe.Subscribe("service/inputmgr_int");
-        ruyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.InputManager.RuyiGamePadInput>(RuyiGamePadInputListener);
-        ruyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.InputManager.RuyiKeyboardInput>(RuyiKeyboardInputListener);
-        ruyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.InputManager.RuyiMouseInput>(RuyiMouseInputListener);
+        m_RuyiNet.Subscribe.Subscribe("service/inputmgr_int");
+        m_RuyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.InputManager.RuyiGamePadInput>(RuyiGamePadInputListener);
+        m_RuyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.InputManager.RuyiKeyboardInput>(RuyiKeyboardInputListener);
+        m_RuyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.InputManager.RuyiMouseInput>(RuyiMouseInputListener);
     }
 
     void RuyiGamePadInputListener(string topic, Ruyi.SDK.InputManager.RuyiGamePadInput msg)
@@ -85,6 +87,27 @@ public class TutorialInfo : MonoBehaviour
         if ((int)Ruyi.SDK.CommonType.RuyiGamePadButtonFlags.GamePad_B == msg.ButtonFlags)
         {
             m_IsReturn = true;
+        }
+
+        if ((int)Ruyi.SDK.CommonType.RuyiGamePadButtonFlags.GamePad_Y == msg.ButtonFlags)
+        {
+            if (null != m_RuyiNet)
+            {
+                Debug.Log("Viberating Please !!!!!!");
+
+                //public bool SetRuyiControllerStatus(sbyte channel, bool enableR, bool enableG, bool enableB, bool enableMotor1, bool enableMotor2, bool shutdown, sbyte RValue, sbyte GValue, sbyte BValue, sbyte motor1Value, sbyte motor1Time, sbyte motor2Value, sbyte motor2Time);
+                //"channel" use 4, when using wire. 0 wireless
+                //"bool enableR, bool enableG, bool enableB" controls light on input
+                //"sbyte RValue, sbyte GValue, sbyte BValue" the rgb path value of the light of input, there is still some bugs on this function
+                //"bool enableMotor1, bool enableMotor2" controls if left/right of the input vibrates
+                //"sbyte motor1Value, sbyte motor1Time, sbyte motor2Value, sbyte motor2Time" is the strengh of viberation and duration
+                m_RuyiNet.mSDK.InputMgr.SetRuyiControllerStatus(4, false, false, false,
+                true, true, false,
+                127, 127, 127,
+                127, 127,
+                127, 127);
+
+            }
         }
     }
 

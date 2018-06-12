@@ -121,7 +121,7 @@ public class RuyiNet : MonoBehaviour
     public Ruyi.Layer0.SubscribeClient Subscribe { get { return mSDK.Subscriber; } }
 
     private RuyiSDKContext mSDKContext;
-    private RuyiSDK mSDK;
+    public RuyiSDK mSDK;
 
     private Action mOnInitialised;
 }
