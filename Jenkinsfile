@@ -30,17 +30,25 @@ pipeline {
 		//Nuget Packages home
 		NUGET_PACKAGES = "c:/jenkins/packages"
 		//Unity Engine root
-		UE_ROOT = "C:/Program Files/Epic Games/UE_4.18/Engine"
+		UE_ROOT = "C:/Jenkins/tools/Unity/Editor"
 		//Temp folder
 		TEMP_DIR = 'temp'
 		//Ruyi SDK CPP folder
-		RUYI_SDK_CPP = "${TEMP_DIR}\\archives\\RuyiSDKCpp"
+		RUYI_SDK_CPP = "TEMP_DIR\\RuyiSDK.nf2.0"		
+		//Ruyi SDK DEMO folder
+		RUYI_SDK_DEMO = "${RuyiSDKUnityCS}\\jade\\sdk\\RuyiSDKUnity"
 		//Ruyi DevTools folder
-		RUYI_DEV_ROOT = "${TEMP_DIR}\\archives\\DevTools_Internal"
+		RUYI_DEV_ROOT = "TEMP_DIR\\DevToolsInternal"
 		//Unity Demo Root
-		DEMO_PROJECT_ROOT = "unity_demo"
-		//DEMO SDK CPP folder
-		DEMO_SDKCPP_ROOT = "${DEMO_PROJECT_ROOT}\\Source\\RuyiSDKDemo"
+		DEMO_PROJECT_ROOT = "space_shooter"
+		
+		//RuyiSDKUnityCS Root
+		RuyiSDKUnityCS = "RuyiSDKUnityCS"
+        //ASSETS_PLUGINS folder
+        ASSETS_PLUGINS="${DEMO_PROJECT_ROOT}\\Assets\\plugins\\x64"
+        //ASSETS_SCRIPTS folder
+        ASSETS_SCRIPTS="${DEMO_PROJECT_ROOT}\\Assets\\RuyiNet\\Scripts"
+		
 		//Unity packed target
 		COOKED_ROOT = "${DEMO_PROJECT_ROOT}/Pack"
 		//Archive root
@@ -60,7 +68,7 @@ pipeline {
 					if(env.BRANCH_NAME == null && params.CLEAN_BUILD){
 						deleteDir()
 					}else{
-						step([$class: 'WsCleanup', patterns: [[pattern: "**/Binaries/**/**", type: 'INCLUDE'],[pattern: "**/Pack/RuyiSDKDemo/**/**", type: 'INCLUDE'],[pattern: "**/Source/RuyiSDKDemo/lib/**/**", type: 'INCLUDE'],[pattern: "**/Source/RuyiSDKDemo/include/**/**", type: 'INCLUDE'],[pattern: "**/.git/*.lock", type: 'INCLUDE']]])
+						step([$class: 'WsCleanup', patterns: [[pattern: "**/Binaries/**/**", type: 'INCLUDE'],[pattern: "**/Pack/RuyiSDKDemo/**/**", type: 'INCLUDE'],[pattern: "**/Source/RuyiSDKDemo/include/**/**", type: 'INCLUDE'],[pattern: "**/.git/*.lock", type: 'INCLUDE']]])
 					}
 									
 					checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches:  scm.branches,
@@ -72,6 +80,18 @@ pipeline {
 						 ], 
 						 submoduleCfg: [], 
 						 userRemoteConfigs: [[credentialsId: scm.userRemoteConfigs[0].credentialsId, url: scm.userRemoteConfigs[0].url]]
+					]
+					
+					checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches:  [[name: 'development']],
+						 doGenerateSubmoduleConfigurations: false, extensions: [
+							[$class: 'SparseCheckoutPaths', sparseCheckoutPaths: [[path: 'jade/sdk/RuyiSDKUnity']]],
+							[$class: 'RelativeTargetDirectory', relativeTargetDir: "${RuyiSDKUnityCS}"],
+							[$class: 'CleanBeforeCheckout'],
+							[$class: 'CheckoutOption', timeout: 60],
+							[$class: 'CloneOption', honorRefspec: true, depth: 0, noTags: true, reference: '', shallow: true,timeout: 60]
+						 ], 
+						 submoduleCfg: [], 
+						 userRemoteConfigs: [[credentialsId:"credential_access_bitbucket", url: "http://bitbucket:7990/scm/ruyi/jade.git"]]
 					]
 				}
 			}
@@ -95,13 +115,13 @@ pipeline {
 					if(params.REF_BUILD_NUMBER?.trim())
 						sel = specific("${params.REF_BUILD_NUMBER}")
 						
-					step([$class:'CopyArtifact',filter:'archives/RuyiSDKCpp/**/*,archives/DevTools_Internal/**/*',target:"${TEMP_DIR}",projectName: "${jobName}",selector: sel])
-					
+					//step([$class:'CopyArtifact',filter:'RuyiSDK.nf2.0/**/*,DevTools_Internal/**/*',target:"${TEMP_DIR}",projectName: "${jobName}",selector: sel])
+					//step([$class:'CopyArtifact',filter:'RuyiSDK.nf2.0/**/*,DevToolsInternal/**/*', projectName: 'RUYI-Platform-CleanBuild', selector: sel, target: '${TEMP_DIR}'])
+                    step([$class:'CopyArtifact',filter:'RuyiSDK.nf2.0/**/*,DevToolsInternal/**/*', projectName: 'RUYI-Platform-CleanBuild', selector: sel, target:"${TEMP_DIR}"])
 					bat """
-						md ${DEMO_SDKCPP_ROOT}\\lib
-						xcopy ${RUYI_SDK_CPP}\\lib\\* /s /i /y ${DEMO_SDKCPP_ROOT}\\lib\\*
-						md ${DEMO_SDKCPP_ROOT}\\include
-						xcopy ${RUYI_SDK_CPP}\\include\\* /s /i /y ${DEMO_SDKCPP_ROOT}\\include\\*
+						xcopy ${TEMP_DIR}\\RuyiSDK.nf2.0\\* ${ASSETS_PLUGINS}\\* /s /i /y
+						xcopy RuyiSDKUnityCS\\jade\\sdk\\RuyiSDKUnity\\* ${ASSETS_SCRIPTS}\\* /s /i /y
+						
 					"""
 				}
 			}
@@ -116,50 +136,15 @@ pipeline {
 			}
 		}
 		
-		stage('Build Libs'){
-			steps{
-				//1.Generate VS project file
-				bat """
-					chcp ${WIN_CMD_ENCODING} 
-					"${UE_ROOT}/Binaries/DotNET/UnrealBuildTool.exe" -projectfiles -project="${workspace}/${DEMO_PROJECT_ROOT}/RuyiSDKDemo.uproject" -CurrentPlatform -2017 -game -rocket -progress
-				"""
-				withEnv(["PATH+NUGET_PACKAGES=${NUGET_PACKAGES}"]){
-					//2.VS Build target - Development & Shipping in Win64 platform
-					bat """
-						chcp ${WIN_CMD_ENCODING}
-						"${tool 'MSBuild'}" "${DEMO_PROJECT_ROOT}\\RuyiSDKDemo.sln" /t:restore;build /m:4 /p:Configuration="Development Editor" /p:Platform="Win64"
-						"${tool 'MSBuild'}" "${DEMO_PROJECT_ROOT}\\RuyiSDKDemo.sln" /t:restore;build /m:4 /p:Configuration=Development /p:Platform="Win64"
-						"${tool 'MSBuild'}" "${DEMO_PROJECT_ROOT}\\RuyiSDKDemo.sln" /t:restore;build /m:4 /p:Configuration=Shipping /p:Platform="Win64"
-					"""
-				}
-			}
-			
-			post {
-				success {
-					stage_success env.STAGE_NAME
-				}
-				failure {
-					stage_failed env.STAGE_NAME
-				}
-			}
-		}
 		
 		stage('Cook Demo'){
 			steps{
 				//Cook
 				bat """
 					chcp ${WIN_CMD_ENCODING}
-					del ${DEMO_PROJECT_ROOT}\\Pack.zip /F /Q
-					"${UE_ROOT}/Build/BatchFiles/RunUAT.bat" BuildCookRun -project="${workspace}/${DEMO_PROJECT_ROOT}/RuyiSDKDemo.uproject" -noP4 -platform=Win64 -clientconfig=Development -serverconfig=Development -cook -maps=AllMaps --NoCompile -stage -pak -archive -archivedirectory="${workspace}/${COOKED_ROOT}"
+					start /wait ${UE_ROOT.replaceAll('/','\\\\')}\\Unity.exe -quit -batchmode -projectPath=${DEMO_PROJECT_ROOT} -executeMethod BuildScript.PerformBuild -buildWindows64Player Pack\\space_shooter\\space_shooter.exe
 				"""
-				
-				//Rename & Copy runtime dependencies
-				bat """
-					chcp ${WIN_CMD_ENCODING}
-					rd ${COOKED_ROOT.replaceAll('/','\\\\')}\\RuyiSDKDemo /S /Q
-					ren ${COOKED_ROOT.replaceAll('/','\\\\')}\\WindowsNoEditor RuyiSDKDemo
-					xcopy ${RUYI_SDK_CPP}\\lib\\zmq\\libzmq.dll ${COOKED_ROOT.replaceAll('/','\\\\')}\\RuyiSDKDemo /i /y
-				"""
+
 			}
 			
 			post {
@@ -174,8 +159,12 @@ pipeline {
 			
 		stage('Pack'){
 			steps{
+            	bat """
+					temp\\DevToolsInternal\\RuyiDev.exe AppRunner --pack --appPath="${COOKED_ROOT}"
+				"""
+				//Rename & Copy runtime dependencies
 				bat """
-					${RUYI_DEV_ROOT}\\RuyiDev.exe AppRunner --pack --appPath="${COOKED_ROOT}"
+					ren ${DEMO_PROJECT_ROOT.replaceAll('/','\\\\')}\\Pack.zip space_shooter.zip
 				"""
 			}
 			
@@ -198,7 +187,7 @@ pipeline {
 						pushd ${DEMO_PROJECT_ROOT}
 						git rev-parse HEAD > ${workspace.replaceAll('/','\\\\')}\\${COMMIT_ID_FILE}
 						popd
-						xcopy ${DEMO_PROJECT_ROOT}\\Pack.zip ${ARCHIVE_ROOT} /i /y
+						xcopy ${DEMO_PROJECT_ROOT}\\space_shooter.zip ${ARCHIVE_ROOT} /i /y
 						exit 0
 					"""
 
@@ -239,22 +228,6 @@ pipeline {
 		}
 	}
 	
-	post{
-		failure{
-			script{
-				if(env.FAILURE_STAGE==null)
-					env.FAILURE_STAGE = 'Unknown'
-
-				if(params.MAIL_ON_FAILED){
-					emailext mimeType:"text/html",
-						 replyTo:"Jenkins@playruyi.com",
-						 subject:"\u2639 ${env.JOB_NAME} #${env.BUILD_NUMBER} failed in [${env.FAILURE_STAGE}] stage.",
-						 to:"${MAIL_RECIPIENT}",
-						 body:'${JELLY_SCRIPT,template="jenkins-email-ext-clangScanReport-template.jelly"}'
-				}
-			}
-		}
-	}
 }
 
 void stage_success(stage){
