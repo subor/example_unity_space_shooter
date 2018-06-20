@@ -270,7 +270,7 @@ public class Done_GameController : NetworkBehaviour
                         var score = mPlayerState[i].Score;
                         if (RuyiNet.LeaderboardService != null)
                         {
-                            RuyiNet.LeaderboardService.PostScoreToLeaderboard(index, "Shooter", score, null);
+                            RuyiNet.LeaderboardService.PostScoreToLeaderboard(index, score, "Shooter", null);
                         }
                     }
                 });
