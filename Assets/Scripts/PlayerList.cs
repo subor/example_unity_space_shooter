@@ -24,7 +24,7 @@ public class PlayerList : Panel
         CleanProfileData();
         ShowLoadingCircle();
 
-        RuyiNet.LeaderboardService.GetGLobalLeaderboardPage(RuyiNet.ActivePlayerIndex, "Shooter", 
+        RuyiNet.LeaderboardService.GetGlobalLeaderboardPage(RuyiNet.ActivePlayerIndex, "Shooter", 
             SortOrder.HIGH_TO_LOW, 0, 8, ShowHighScores);
     }
 
@@ -37,20 +37,19 @@ public class PlayerList : Panel
         ShowLoadingCircle();
 
         RuyiNet.LeaderboardService.GetSocialLeaderboard(RuyiNet.ActivePlayerIndex, "Shooter", true,
-            (RuyiNetSocialLeaderboardResponse response) =>
+            (RuyiNetLeaderboardPage leaderboard) =>
             {
                 HideLoadingCircle();
-
-                var socialLeaderboard = response.data.response.social_leaderboard;
-                if (socialLeaderboard != null)
+                
+                if (leaderboard != null)
                 {
                     var y = START_Y_POSITION;
-                    foreach (var i in socialLeaderboard)
+                    foreach (var i in leaderboard.Entries)
                     {
-                        var playerProfile = AddProfileEntry(y, i.playerName, i.playerId, i.pictureUrl, i.score.ToString());
+                        var playerProfile = AddProfileEntry(y, i.Name, i.PlayerId, i.PictureUrl, i.Score.ToString());
 
                         var button = playerProfile.GetComponentInChildren<Button>();
-                        if (i.playerName == "You")
+                        if (i.Name == "You")
                         {
                             button.gameObject.SetActive(false);
                         }
@@ -58,7 +57,7 @@ public class PlayerList : Panel
                         {
                             button.onClick.AddListener(() =>
                             {
-                                RemoveFriendFromLeaderboard(button, i.playerId);
+                                RemoveFriendFromLeaderboard(button, i.PlayerId);
                             });
 
                             var buttonText = button.GetComponentInChildren<Text>();
@@ -162,25 +161,26 @@ public class PlayerList : Panel
         });
     }
 
-    private void ShowHighScores(RuyiNetLeaderboardResponse response)
+    private void ShowHighScores(RuyiNetLeaderboardPage leaderboard)
     {
         HideLoadingCircle();
 
-        if (response.data.response.leaderboard != null)
+        if (leaderboard != null)
         {
             var y = START_Y_POSITION;
-            foreach (var i in response.data.response.leaderboard)
+            foreach (var i in leaderboard.Entries)
             {
-                var playerProfile = AddProfileEntry(y, i.name, i.playerId, i.pictureUrl, i.score.ToString());
+                var playerProfile = AddProfileEntry(y, i.Name, i.PlayerId, i.PictureUrl, i.Score.ToString());
                 var button = playerProfile.GetComponentInChildren<Button>();
-                if (i.friend)
+                /*if (i.friend)
                 {
                     button.interactable = false;
 
                     var buttonText = button.GetComponentInChildren<Text>();
                     buttonText.text = "ADDED";
                 }
-                else if (i.playerId == RuyiNet.ActivePlayer.profileId)
+                else */
+                if (i.PlayerId == RuyiNet.ActivePlayer.profileId)
                 {
                     button.gameObject.SetActive(false);
                 }
@@ -188,7 +188,7 @@ public class PlayerList : Panel
                 {
                     button.onClick.AddListener(() =>
                     {
-                        AddFriend(button, i.playerId);
+                        AddFriend(button, i.PlayerId);
                     });
 
                     var buttonText = button.GetComponentInChildren<Text>();

@@ -5493,8 +5493,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a45396ae9c2ea440bab859f831f1396, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AppId: 11499
-  AppSecret: Shooter
+  AppId: 30002
+  AppSecret: 621beb25-a14f-4ab0-a01e-102f831d58ab
 --- !u!1 &970647842
 GameObject:
   m_ObjectHideFlags: 0
