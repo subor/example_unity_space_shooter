@@ -79,22 +79,21 @@ public class PlayerList : Panel
         CleanProfileData();
         ShowLoadingCircle();
 
-        RuyiNet.FriendService.ListFriends(RuyiNet.ActivePlayerIndex, (RuyiNetListFriendsResponse response) =>
+        RuyiNet.FriendService.ListFriends(RuyiNet.ActivePlayerIndex, (RuyiNetFriendSummaryData[] friends) =>
         {
             HideLoadingCircle();
-
-            var friends = response.data.response.friends;
+            
             if (friends != null)
             {
                 var y = START_Y_POSITION;
                 foreach (var i in friends)
                 {
-                    var playerProfile = AddProfileEntry(y, i.name, i.playerId, i.pictureUrl, "");
+                    var playerProfile = AddProfileEntry(y, i.Name, i.PlayerId, i.PictureUrl, "");
 
                     var button = playerProfile.GetComponentInChildren<Button>();
                     button.onClick.AddListener(() =>
                     {
-                        RemoveFriend(button, i.playerId);
+                        RemoveFriend(button, i.PlayerId);
                     });
 
                     var buttonText = button.GetComponentInChildren<Text>();
@@ -126,19 +125,19 @@ public class PlayerList : Panel
 
         RuyiNet.FriendService.RemoveFriend(RuyiNet.ActivePlayerIndex, profileId, (RuyiNetResponse) =>
         {
-            RuyiNet.FriendService.ListFriends(RuyiNet.ActivePlayerIndex, (RuyiNetListFriendsResponse response) =>
+            RuyiNet.FriendService.ListFriends(RuyiNet.ActivePlayerIndex, (RuyiNetFriendSummaryData[] friends) =>
             {
                 CleanProfileData();
 
                 var y = START_Y_POSITION;
-                foreach (var i in response.data.response.friends)
+                foreach (var i in friends)
                 {
-                    var playerProfile = AddProfileEntry(y, i.name, i.playerId, i.pictureUrl, "");
+                    var playerProfile = AddProfileEntry(y, i.Name, i.PlayerId, i.PictureUrl, "");
 
                     var newButton = playerProfile.GetComponentInChildren<Button>();
                     newButton.onClick.AddListener(() =>
                     {
-                        RemoveFriend(newButton, i.playerId);
+                        RemoveFriend(newButton, i.PlayerId);
                     });
 
                     var newButtonText = button.GetComponentInChildren<Text>();
