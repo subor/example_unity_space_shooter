@@ -11,35 +11,26 @@ public class Party : Panel
         ShowLoadingCircle();
         CleanProfileData();
 
-        RuyiNet.PartyService.GetPartyInfo(RuyiNet.ActivePlayerIndex, (RuyiNetGetPartyInfoResponse response) =>
+        RuyiNet.PartyService.ListPartyInvitations(RuyiNet.ActivePlayerIndex,(RuyiNetPartyInvitation[] invitations) =>
         {
             HideLoadingCircle();
 
-            var groups = response.data.response.groups;
-            var invited = response.data.response.invited;
-            //var requested = response.data.response.requested;
-
-            if (groups.Length > 0)
-            {
-                mGroupId = groups[0].groupId;
-                RuyiNet.PartyService.GetPartyMembersInfo(RuyiNet.ActivePlayerIndex, OnGetPartyMembersInfo);
-            }
-            else if (invited.Length > 0)
+            if (invitations != null &&
+                invitations.Length > 0)
             {
                 var y = START_Y_POSITION;
-                foreach (var i in invited)
+                foreach (var i in invitations)
                 {
                     var invitation = Instantiate(InvitePrefab, new Vector3(0, y, 0), Quaternion.identity);
                     invitation.transform.SetParent(ScrollViewContent.transform, false);
 
                     var textFields = invitation.GetComponentsInChildren<Text>();
-                    textFields[0].text = i.name;
-                    textFields[3].text = i.memberCount.ToString() + "/4";
+                    textFields[0].text = i.FromPlayerId;
 
                     var buttons = invitation.GetComponentsInChildren<Button>();
                     buttons[0].onClick.AddListener(() =>
                     {
-                        RuyiNet.PartyService.RejectPartyInvitation(RuyiNet.ActivePlayerIndex, i.groupId, (RuyiNetResponse data) =>
+                        RuyiNet.PartyService.RejectPartyInvitation(RuyiNet.ActivePlayerIndex, i.PartyId, (RuyiNetParty data) =>
                         {
                             Open();
                         });
@@ -47,7 +38,7 @@ public class Party : Panel
 
                     buttons[1].onClick.AddListener(() =>
                     {
-                        RuyiNet.PartyService.AcceptPartyInvitation(RuyiNet.ActivePlayerIndex, i.groupId, (RuyiNetResponse data) =>
+                        RuyiNet.PartyService.AcceptPartyInvitation(RuyiNet.ActivePlayerIndex, i.PartyId, (RuyiNetParty data) =>
                         {
                             Open();
                         });
@@ -74,7 +65,7 @@ public class Party : Panel
                 buttonText.text = "LEAVE PARTY";
                 buttons[0].onClick.AddListener(() =>
                 {
-                    RuyiNet.PartyService.LeaveParty(RuyiNet.ActivePlayerIndex, mGroupId, (RuyiNetResponse data) =>
+                    RuyiNet.PartyService.LeaveParty(RuyiNet.ActivePlayerIndex, mGroupId, (RuyiNetParty data) =>
                     {
                         Open();
                     });
