@@ -124,7 +124,15 @@ public class Lobby : Panel
         if (lobbies != null &&
             lobbies.Length > 0)
         {
-            RuyiNet.LobbyService.JoinLobby(RuyiNet.ActivePlayerIndex, lobbies[0].LobbyId, UpdateLobbyInfo);
+            var result = Array.FindAll(lobbies[0].MemberPlayerIds, x => x.Equals(RuyiNet.ActivePlayer.profileId));
+            if (result.Length == 0)
+            {
+                RuyiNet.LobbyService.JoinLobby(RuyiNet.ActivePlayerIndex, lobbies[0].LobbyId, UpdateLobbyInfo);
+            }
+            else
+            {
+                UpdateLobbyInfo(lobbies[0]);
+            }
         }
         else
         {
