@@ -3714,7 +3714,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_AdditionalShaderChannelsFlag: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 150
+  m_SortingOrder: 1500
   m_TargetDisplay: 0
 --- !u!224 &543237773
 RectTransform:
@@ -5493,8 +5493,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78fc985d9b2019747928735b24daf90d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AppId: 30001
-  AppSecret: Shooter
+  AppId: 30002
+  AppSecret: 621beb25-a14f-4ab0-a01e-102f831d58ab
 --- !u!1 &970647842
 GameObject:
   m_ObjectHideFlags: 0
@@ -6835,7 +6835,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_AdditionalShaderChannelsFlag: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 200
+  m_SortingOrder: 2000
   m_TargetDisplay: 0
 --- !u!224 &1247784773
 RectTransform:
@@ -7379,7 +7379,7 @@ GameObject:
   - component: {fileID: 1374120134}
   m_Layer: 5
   m_Name: Btn-StartGame
-  m_TagString: ExitButton
+  m_TagString: StartGame
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
