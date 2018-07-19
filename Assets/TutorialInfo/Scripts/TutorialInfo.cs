@@ -41,7 +41,6 @@ public class TutorialInfo : MonoBehaviour
 
     private void RuyiInputListener()
     {
-        Debug.Log("RuyiInputListener m_IsBtnSelectedChanged:" + m_IsBtnSelectedChanged + " m_IsEnter:" + m_IsEnter);
         if (m_IsBtnSelectedChanged)
         {
             m_IsBtnSelectedChanged = false;

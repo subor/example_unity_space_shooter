@@ -16,7 +16,6 @@ public class Lobby : Panel
         CleanProfileData();
 
         FindMyLobbies();
-        //QuickMatch();
     }
 
     public override void Close()
@@ -44,6 +43,18 @@ public class Lobby : Panel
                 networkManager.matchMaker.CreateMatch("Name", 4, true, "", "", "", 0, 0, OnMatchCreate);
             }
         }
+    }
+
+    public void FindLobbies()
+    {
+        ShowLoadingCircle();
+        RuyiNet.LobbyService.FindLobbies(RuyiNet.ActivePlayerIndex, 10, RuyiNetLobbyType.PLAYER, OnFindLobbies);
+    }
+
+    public void FindFriendsLobbies()
+    {
+        ShowLoadingCircle();
+        RuyiNet.LobbyService.FindFriendsLobbies(RuyiNet.ActivePlayerIndex, OnFindLobbies);
     }
     
     private void OnMatchCreate(bool success, string extendedInfo, MatchInfo matchInfo)
@@ -135,11 +146,31 @@ public class Lobby : Panel
 
     private void OnFindLobbies(RuyiNetLobby[] lobbies)
     {
+
         var startButton = GameObject.FindGameObjectWithTag("StartGame").GetComponent<Button>();
-        var buttonText = startButton.GetComponentInChildren<Text>();
-        buttonText.text = "CREATE LOBBY";
+        var startButtonText = startButton.GetComponentInChildren<Text>();
+        startButtonText.text = "CREATE LOBBY";
         startButton.onClick.RemoveAllListeners();
         startButton.onClick.AddListener(CreateLobby);
+
+        if (lobbies != null &&
+            lobbies.Length > 0)
+        {
+            var lobbyOwnerIds = new List<String>();
+            mPlayerIdsToLobbyIds = new Dictionary<string, string>();
+
+            foreach (var i in lobbies)
+            {
+                lobbyOwnerIds.Add(i.OwnerPlayerId);
+                mPlayerIdsToLobbyIds[i.OwnerPlayerId] = i.LobbyId;
+            }
+
+            RuyiNet.FriendService.GetProfiles(RuyiNet.ActivePlayerIndex, lobbyOwnerIds.ToArray(), OnGotLobbyProfiles);
+        }
+        else
+        {
+            HideLoadingCircle();
+        }
     }
 
     private void CreateLobby()
@@ -226,12 +257,42 @@ public class Lobby : Panel
                 {
                     AddFriend(button, i.profileId);
                 });
-                
+
                 buttonText.text = "ADD FRIEND";
             }
 
             y += Y_POSITION_OFFSET;
         }
+    }
+
+    private void OnGotLobbyProfiles(RuyiNetGetProfilesResponse response)
+    {
+        HideLoadingCircle();
+
+        CleanProfileData();
+        var profiles = response.data.response;
+        var y = START_Y_POSITION;
+        foreach (var i in profiles)
+        {
+            var playerProfile = AddProfileEntry(y, i.profileName, i.profileId, i.pictureUrl, "");
+
+            var button = playerProfile.GetComponentInChildren<Button>();
+            var buttonText = button.GetComponentInChildren<Text>();
+
+            button.onClick.AddListener(() =>
+            {
+                JoinLobby(mPlayerIdsToLobbyIds[i.profileId]);
+            });
+
+            buttonText.text = "JOIN";
+
+            y += Y_POSITION_OFFSET;
+        }
+    }
+
+    private void JoinLobby(string lobbyId)
+    {
+        RuyiNet.LobbyService.JoinLobby(RuyiNet.ActivePlayerIndex, lobbyId, UpdateLobbyInfo);
     }
 
     private void RemoveFriend(Button button, string profileId)
@@ -320,5 +381,6 @@ public class Lobby : Panel
     }
 
     RuyiNetLobby mLobby;
+    Dictionary<string, string> mPlayerIdsToLobbyIds;
     string mConnectionString;
 }
