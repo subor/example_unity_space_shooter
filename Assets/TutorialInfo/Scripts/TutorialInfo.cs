@@ -1,7 +1,6 @@
+using Ruyi.Layer0;
 using Ruyi.SDK.Online;
 using UnityEngine;
-
-using XInputDotNetPure;
 
 // Hi! This script presents the overlay info for our tutorial content, linking you back to the relevant page.
 public class TutorialInfo : MonoBehaviour 
@@ -17,13 +16,6 @@ public class TutorialInfo : MonoBehaviour
     private bool m_IsEnter = false;
     private bool m_IsReturn = false;
 
-    private GamePadState m_GamePadState;
-
-    private bool m_IsLJoystickUp = false;
-    private bool m_IsLJoystickDown = false;
-
-    private RuyiNet m_RuyiNet;
-
     void Awake()
     {
         ShowLaunchScreen();
@@ -31,110 +23,24 @@ public class TutorialInfo : MonoBehaviour
 
     void Start()
     {
-        //loading.SetActive(true);
-        m_RuyiNet = FindObjectOfType<RuyiNet>();
-        m_RuyiNet.Initialise(OnRuyiNetInitialised);
+        loading.SetActive(true);
+        var ruyiNet = FindObjectOfType<RuyiNet>();
+        ruyiNet.Initialise(OnRuyiNetInitialised);
 
         //our input event is listener in sub-thread, in which you can't directly renderer UnityEngine Object (you can't use any UnityEngine-related object in sub-thread)
         //you can use middle values £¨int,float,string,etc,non-UnityEngine-ojbect-type£© to receive the RuyiSDK input value, then listen it in UnityEngine's main thread (Monobehaviour.update(), etc)
-        m_RuyiNet.Subscribe.Subscribe("service/inputmgr_int");
-        m_RuyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.InputManager.RuyiGamePadInput>(RuyiGamePadInputListener);
-        m_RuyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.InputManager.RuyiKeyboardInput>(RuyiKeyboardInputListener);
-        m_RuyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.InputManager.RuyiMouseInput>(RuyiMouseInputListener);
-    }
-
-    void RuyiGamePadInputListener(string topic, Ruyi.SDK.InputManager.RuyiGamePadInput msg)
-    {       
-        float leftThumbX = MappingThumbValue(msg.LeftThumbX);
-        float leftThumbY = MappingThumbValue(msg.LeftThumbY);   
-
-        // add condition ture == m_IsLJoystickDown to avoid repeated operation 
-        // because joystick event will call continuesly while pushing the joystick
-        // you need to filter the message according to your logic
-        if (leftThumbY <= -0.5f && !m_IsLJoystickDown)
-        {
-            m_IsLJoystickDown = true;
-            ++m_BtnSelected;
-            m_IsBtnSelectedChanged = true;
-        }
-        if (leftThumbY >= 0.5f && !m_IsLJoystickUp)
-        {
-            m_IsLJoystickUp = true;
-            --m_BtnSelected;
-            m_IsBtnSelectedChanged = true;
-        }
-        //release the joystick
-        if (Mathf.Abs(leftThumbY) < 0.1f)
-        {
-            m_IsLJoystickUp = false;
-            m_IsLJoystickDown = false;
-        }
-
-        if ((int)Ruyi.SDK.CommonType.RuyiGamePadButtonFlags.GamePad_Up == msg.ButtonFlags)
-        {
-            --m_BtnSelected;
-            m_IsBtnSelectedChanged = true;
-        }
-        if ((int)Ruyi.SDK.CommonType.RuyiGamePadButtonFlags.GamePad_Down == msg.ButtonFlags)
-        {
-            ++m_BtnSelected;
-            m_IsBtnSelectedChanged = true;
-        }
-        if ((int)Ruyi.SDK.CommonType.RuyiGamePadButtonFlags.GamePad_A == msg.ButtonFlags)
-        {
-            m_IsEnter = true;
-        }
-        if ((int)Ruyi.SDK.CommonType.RuyiGamePadButtonFlags.GamePad_B == msg.ButtonFlags)
-        {
-            m_IsReturn = true;
-        }
-
-        if ((int)Ruyi.SDK.CommonType.RuyiGamePadButtonFlags.GamePad_Y == msg.ButtonFlags)
-        {
-            if (null != m_RuyiNet)
-            {
-                Debug.Log("Viberating Please !!!!!!");
-
-                //public bool SetRuyiControllerStatus(sbyte channel, bool enableR, bool enableG, bool enableB, bool enableMotor1, bool enableMotor2, bool shutdown, sbyte RValue, sbyte GValue, sbyte BValue, sbyte motor1Value, sbyte motor1Time, sbyte motor2Value, sbyte motor2Time);
-                //"channel" use 4, when using wire. 0 wireless
-                //"bool enableR, bool enableG, bool enableB" controls light on input
-                //"sbyte RValue, sbyte GValue, sbyte BValue" the rgb path value of the light of input, there is still some bugs on this function
-                //"bool enableMotor1, bool enableMotor2" controls if left/right of the input vibrates
-                //"sbyte motor1Value, sbyte motor1Time, sbyte motor2Value, sbyte motor2Time" is the strengh of viberation and duration
-                m_RuyiNet.mSDK.InputMgr.SetRuyiControllerStatus(4, false, false, false,
-                true, true, false,
-                127, 127, 127,
-                127, 127,
-                127, 127);
-
-            }
-        }
-    }
-
-    void RuyiKeyboardInputListener(string topic, Ruyi.SDK.InputManager.RuyiKeyboardInput msg)
-    {
-
-    }
-
-    void RuyiMouseInputListener(string topic, Ruyi.SDK.InputManager.RuyiMouseInput msg)
-    {
-
-    }
-
-    private float MappingThumbValue(float value)
-    {
-        return value / Mathf.Pow(2f, 15);
+        ruyiNet.Subscribe.Subscribe("service/" + ServiceIDs.USER_SERVICE_EXTERNAL.ToString().ToLower());
+        ruyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.UserServiceExternal.InputActionEvent>(RuyiInputStateChangeHandler);
     }
 
     //if use fixedupdate may lead to no response
     void Update()
     {
         RuyiInputListener();      
-    }  
+    }
 
     private void RuyiInputListener()
-    {        
-        //Debug.Log("RuyiInputListener m_IsBtnSelectedChanged:" + m_IsBtnSelectedChanged + " m_IsEnter:" + m_IsEnter);
+    {
         if (m_IsBtnSelectedChanged)
         {
             m_IsBtnSelectedChanged = false;
@@ -163,6 +69,92 @@ public class TutorialInfo : MonoBehaviour
         if (m_IsReturn)
         {
             m_IsReturn = false;           
+        }
+    }
+
+    void RuyiInputStateChangeHandler(string topic, Ruyi.SDK.UserServiceExternal.InputActionEvent msg)
+    {
+        //TriggerKeys 
+        //DeviceType: to identify your input device
+        //Key: the key of your input device
+        //action: use this value to identify the input button, this value can be configed in the config file
+        //NewValue/OldValue:  could be three value:0,1,2.  1 means press Down 2 means release 0 not define yet
+        //NewValue is the current key state, if your press down, NewValue will be 1, when you release, NewValue will be 2, OldValue will be 1
+
+        //you can judge the input key by "action" value of Triggers structure. The value of "action" can be modified
+        //in config file of the game package. Now I just hard-core in code. We'll try to optimise this part
+        //in future release
+        //all default system action value: (Layer0/RuyiLocalRoot/Resources/configs/UserSetting)
+        //GamePad_LB
+        //GamePad_LT
+        //GamePad_L3
+        //GamePad_RB
+        //GamePad_RT
+        //GamePad_R3
+        //GamePad_UP
+        //GamePad_Down
+        //GamePad_Left
+        //GamePad_Down
+        //GamePad_Home
+        //GamePad_Back
+        //GamePad_Start
+        //GamePad_X
+        //GamePad_Y
+        //GamePad_A
+        //GamePad_B
+        //GamePad_LJoyX
+        //GamePad_LJoyY
+        //GamePad_RJoyX
+        //GamePad_RJoyY
+        for (int i = 0; i < msg.Triggers.Count; ++i)
+        {           
+            Debug.Log("TutorialInfo RuyiInputStateChangeHandler topic:" + topic + " action:" + msg.Action + " key:" + msg.Triggers[i].Key + " newValue:" + msg.Triggers[i].NewValue);
+           
+            if (msg.Action.Equals("GamePad_Up") && 1 == msg.Triggers[i].NewValue)
+            {
+                --m_BtnSelected;
+                m_IsBtnSelectedChanged = true;
+            }
+            if (msg.Action.Equals("GamePad_Down") && 1 == msg.Triggers[i].NewValue)
+            {
+                ++m_BtnSelected;
+                m_IsBtnSelectedChanged = true;
+            }
+            if (msg.Action.Equals("GamePad_A") && 1 == msg.Triggers[i].NewValue)
+            {
+                m_IsEnter = true;
+            }
+            if (msg.Action.Equals("GamePad_B") && 1 == msg.Triggers[i].NewValue)
+            {
+                m_IsReturn = true;
+            }
+            /*
+            if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.Up == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonUp == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogLeftJoyY == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
+            {
+                --m_BtnSelected;
+                m_IsBtnSelectedChanged = true;
+            }
+            if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.Down == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonDown == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eAnalogRightJoyY == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
+            {
+                ++m_BtnSelected;
+                m_IsBtnSelectedChanged = true;
+            }
+
+            if ( ((int)Ruyi.SDK.GlobalInputDefine.Key.A == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue)
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonA == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
+            {
+                m_IsEnter = true;
+            }
+
+            if ((int)Ruyi.SDK.GlobalInputDefine.Key.S == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue
+                || ((int)Ruyi.SDK.GlobalInputDefine.RuyiControllerKey.eButtonX == msg.Triggers[i].Key && 1 == msg.Triggers[i].NewValue))
+            {
+                m_IsReturn = true;
+            }*/
         }
     }
 
@@ -197,15 +189,12 @@ public class TutorialInfo : MonoBehaviour
 
     private void OnRuyiNetInitialised()
     {
-        Debug.Log("TutorialInfo OnRuyiNetInitialised");
-
-        var ruyiNet = FindObjectOfType<RuyiNet>();      
+        var ruyiNet = FindObjectOfType<RuyiNet>();
         ruyiNet.ForEachPlayer((int index, RuyiNetProfile profile) =>
         {
-            //Debug.Log("index:" + index + " profile " + profile.profileId);
             if (profile != null)
             {
-                //Debug.Log("GC: Player " + index);
+                Debug.Log("GC: Player " + index);
                 //if (ruyiNet.LeaderboardService != null)
                 {
                     //    ruyiNet.LeaderboardService.CreateLeaderboard(index, "Shooter", RuyiNetLeaderboardType.HIGH_VALUE, RuyiNetRotationType.MONTHLY, null);

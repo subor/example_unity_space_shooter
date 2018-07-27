@@ -15,7 +15,7 @@ public class Lobby : Panel
         ShowLoadingCircle();
         CleanProfileData();
 
-        QuickMatch();
+        FindMyLobbies();
     }
 
     public override void Close()
@@ -24,22 +24,17 @@ public class Lobby : Panel
 
         if (RuyiNet != null &&
             RuyiNet.IsRuyiNetAvailable &&
-            RuyiNet.CurrentLobby != null)
+            mLobby != null)
         {
-            if (RuyiNet.CurrentLobby.MemberCount <= 1)
-            {
-                RuyiNet.LobbyService.CloseLobby(RuyiNet.ActivePlayerIndex, RuyiNet.CurrentLobbyId, null);
-            }
-            else
-            {
-                RuyiNet.LobbyService.LeaveLobby(RuyiNet.ActivePlayerIndex, RuyiNet.CurrentLobbyId, null);
-            }
+            RuyiNet.LobbyService.LeaveLobby(RuyiNet.ActivePlayerIndex, mLobby.LobbyId, null);
         }
+
+        mLobby = null;
     }
 
     public void StartGame()
     {
-        if (RuyiNet.ActivePlayer.profileId == RuyiNet.CurrentLobby.OwnerProfileId)
+        if (RuyiNet.ActivePlayer.profileId == mLobby.OwnerPlayerId)
         {
             var networkManager = FindObjectOfType<MyNetworkManager>();
             if (networkManager != null)
@@ -48,6 +43,18 @@ public class Lobby : Panel
                 networkManager.matchMaker.CreateMatch("Name", 4, true, "", "", "", 0, 0, OnMatchCreate);
             }
         }
+    }
+
+    public void FindLobbies()
+    {
+        ShowLoadingCircle();
+        RuyiNet.LobbyService.FindLobbies(RuyiNet.ActivePlayerIndex, 10, RuyiNetLobbyType.PLAYER, OnFindLobbies);
+    }
+
+    public void FindFriendsLobbies()
+    {
+        ShowLoadingCircle();
+        RuyiNet.LobbyService.FindFriendsLobbies(RuyiNet.ActivePlayerIndex, OnFindLobbies);
     }
     
     private void OnMatchCreate(bool success, string extendedInfo, MatchInfo matchInfo)
@@ -65,45 +72,20 @@ public class Lobby : Panel
             networkManager.StartHost(matchInfo);
 
             Debug.Log(matchInfo.networkId.ToString());
-            RuyiNet.LobbyService.StartGame(RuyiNet.ActivePlayerIndex, RuyiNet.CurrentLobbyId,
-                matchInfo.networkId.ToString(), null);
+            RuyiNet.LobbyService.StartGame(RuyiNet.ActivePlayerIndex, mLobby.LobbyId,
+            matchInfo.networkId.ToString(), null);
         }
     }
 
     private void Start()
     {
-        RuyiNet.LobbyService.OnPlayerJoinLobby -= OnPlayerJoined;
-        RuyiNet.LobbyService.OnPlayerLeaveLobby -= OnPlayerLeave;
-        RuyiNet.LobbyService.OnLobbyStartGame -= OnStartGame;
-        RuyiNet.LobbyService.OnLobbyClosed -= OnClosed;
-
-        RuyiNet.LobbyService.OnPlayerJoinLobby += OnPlayerJoined;
-        RuyiNet.LobbyService.OnPlayerLeaveLobby += OnPlayerLeave;
-        RuyiNet.LobbyService.OnLobbyStartGame += OnStartGame;
-        RuyiNet.LobbyService.OnLobbyClosed += OnClosed;
-    }
-
-    private void OnPlayerJoined(string profileId)
-    {
-        UpdateLobbyInfo(RuyiNet.CurrentLobby);
-    }
-
-    private void OnPlayerLeave(string profileId)
-    {
-        UpdateLobbyInfo(RuyiNet.CurrentLobby);
-    }
-
-    private void OnStartGame()
-    {
-        if (RuyiNet.ActivePlayer.profileId != RuyiNet.CurrentLobby.OwnerProfileId)
-        {
-            var networkManager = FindObjectOfType<MyNetworkManager>();
-            if (networkManager != null)
-            {
-                networkManager.StartMatchMaker();
-                networkManager.matchMaker.ListMatches(0, 20, "", false, 0, 0, OnListMatches);
-            }
-        }
+        RuyiNet.LobbyService.OnLobbyClosed += OnLobbyClosed;
+        RuyiNet.LobbyService.OnLobbyCreated += OnLobbyCreated;
+        RuyiNet.LobbyService.OnLobbyDestroyed += OnLobbyDestroyed;
+        RuyiNet.LobbyService.OnLobbyGameStarted += OnLobbyGameStarted;
+        RuyiNet.LobbyService.OnLobbyOpened += OnLobbyOpened;
+        RuyiNet.LobbyService.OnLobbyPlayerJoined += OnLobbyPlayerJoined;
+        RuyiNet.LobbyService.OnLobbyPlayerLeft += OnLobbyPlayerLeft;
     }
 
     private void OnListMatches(bool success, string extendedInfo, List<MatchInfoSnapshot> matchInfo)
@@ -112,7 +94,7 @@ public class Lobby : Panel
         var networkManager = FindObjectOfType<MyNetworkManager>();
         if (networkManager != null)
         {
-            var networkId = (NetworkID)Enum.Parse(typeof(NetworkID), RuyiNet.CurrentLobby.ConnectionString);
+            var networkId = (NetworkID)Enum.Parse(typeof(NetworkID), mConnectionString);
             networkManager.matchMaker.JoinMatch(networkId, "", "", "", 0, 0, OnJoinMatch);
         }
     }
@@ -144,12 +126,74 @@ public class Lobby : Panel
         RuyiNet.LobbyService.FindLobbies(RuyiNet.ActivePlayerIndex, 10, RuyiNetLobbyType.PLAYER, 1, OnQuickMatchFind);
     }
 
+    private void FindMyLobbies()
+    {
+        RuyiNet.LobbyService.GetMyLobbies(RuyiNet.ActivePlayerIndex, OnFindMyLobbies);
+    }
+
+    private void OnFindMyLobbies(RuyiNetLobby[] lobbies)
+    {
+        if (lobbies != null &&
+            lobbies.Length > 0)
+        {
+            UpdateLobbyInfo(lobbies[0]);
+        }
+        else
+        {
+            RuyiNet.LobbyService.FindLobbies(RuyiNet.ActivePlayerIndex, 10, RuyiNetLobbyType.PLAYER, OnFindLobbies);           
+        }
+    }
+
+    private void OnFindLobbies(RuyiNetLobby[] lobbies)
+    {
+
+        var startButton = GameObject.FindGameObjectWithTag("StartGame").GetComponent<Button>();
+        var startButtonText = startButton.GetComponentInChildren<Text>();
+        startButtonText.text = "CREATE LOBBY";
+        startButton.onClick.RemoveAllListeners();
+        startButton.onClick.AddListener(CreateLobby);
+
+        if (lobbies != null &&
+            lobbies.Length > 0)
+        {
+            var lobbyOwnerIds = new List<String>();
+            mPlayerIdsToLobbyIds = new Dictionary<string, string>();
+
+            foreach (var i in lobbies)
+            {
+                lobbyOwnerIds.Add(i.OwnerPlayerId);
+                mPlayerIdsToLobbyIds[i.OwnerPlayerId] = i.LobbyId;
+            }
+
+            RuyiNet.FriendService.GetProfiles(RuyiNet.ActivePlayerIndex, lobbyOwnerIds.ToArray(), OnGotLobbyProfiles);
+        }
+        else
+        {
+            HideLoadingCircle();
+        }
+    }
+
+    private void CreateLobby()
+    {
+        var startButton = GameObject.FindGameObjectWithTag("StartGame").GetComponent<Button>();
+        startButton.enabled = false;
+
+        RuyiNet.LobbyService.CreateLobby(RuyiNet.ActivePlayerIndex, 4, RuyiNetLobbyType.PLAYER, UpdateLobbyInfo);
+    }
+
     private void OnQuickMatchFind(RuyiNetLobby[] lobbies)
     {
         if (lobbies != null &&
             lobbies.Length > 0)
         {
-            RuyiNet.LobbyService.JoinLobby(RuyiNet.ActivePlayerIndex, lobbies[0].LobbyId, UpdateLobbyInfo);
+            if (lobbies[0].MemberPlayerIds.Contains(RuyiNet.ActivePlayer.profileId))
+            {
+                UpdateLobbyInfo(lobbies[0]);
+            }
+            else
+            {
+                RuyiNet.LobbyService.JoinLobby(RuyiNet.ActivePlayerIndex, lobbies[0].LobbyId, UpdateLobbyInfo);
+            }
         }
         else
         {
@@ -159,17 +203,25 @@ public class Lobby : Panel
 
     private void UpdateLobbyInfo(RuyiNetLobby lobby)
     {
-        if (lobby != null)
+        mLobby = lobby;
+        if (mLobby != null)
         {
-            if (lobby.MemberProfileIds != null)
+            ShowLoadingCircle();
+            RuyiNet.FriendService.GetProfiles(RuyiNet.ActivePlayerIndex, mLobby.MemberPlayerIds.ToArray(), OnGotProfiles);
+
+            if (mLobby.OwnerPlayerId == RuyiNet.ActivePlayer.profileId)
             {
-                ShowLoadingCircle();
-                RuyiNet.FriendService.GetProfiles(RuyiNet.ActivePlayerIndex, lobby.MemberProfileIds, OnGotProfiles);
+                var startButton = GameObject.FindGameObjectWithTag("StartGame").GetComponent<Button>();
+                startButton.enabled = true;
+                var buttonText = startButton.GetComponentInChildren<Text>();
+                buttonText.text = "START GAME";
+                startButton.onClick.RemoveAllListeners();
+                startButton.onClick.AddListener(StartGame);
             }
-            else
-            {
-                HideLoadingCircle();
-            }
+        }
+        else
+        {
+            HideLoadingCircle();
         }
     }
 
@@ -205,12 +257,42 @@ public class Lobby : Panel
                 {
                     AddFriend(button, i.profileId);
                 });
-                
+
                 buttonText.text = "ADD FRIEND";
             }
 
             y += Y_POSITION_OFFSET;
         }
+    }
+
+    private void OnGotLobbyProfiles(RuyiNetGetProfilesResponse response)
+    {
+        HideLoadingCircle();
+
+        CleanProfileData();
+        var profiles = response.data.response;
+        var y = START_Y_POSITION;
+        foreach (var i in profiles)
+        {
+            var playerProfile = AddProfileEntry(y, i.profileName, i.profileId, i.pictureUrl, "");
+
+            var button = playerProfile.GetComponentInChildren<Button>();
+            var buttonText = button.GetComponentInChildren<Text>();
+
+            button.onClick.AddListener(() =>
+            {
+                JoinLobby(mPlayerIdsToLobbyIds[i.profileId]);
+            });
+
+            buttonText.text = "JOIN";
+
+            y += Y_POSITION_OFFSET;
+        }
+    }
+
+    private void JoinLobby(string lobbyId)
+    {
+        RuyiNet.LobbyService.JoinLobby(RuyiNet.ActivePlayerIndex, lobbyId, UpdateLobbyInfo);
     }
 
     private void RemoveFriend(Button button, string profileId)
@@ -221,7 +303,7 @@ public class Lobby : Panel
 
         RuyiNet.FriendService.RemoveFriend(RuyiNet.ActivePlayerIndex, profileId, (RuyiNetResponse) =>
         {
-            UpdateLobbyInfo(RuyiNet.CurrentLobby);
+            UpdateLobbyInfo(mLobby);
         });
     }
 
@@ -236,4 +318,69 @@ public class Lobby : Panel
             buttonText.text = "ADDED";
         });
     }
+
+    private void OnLobbyClosed(int clientIndex, string lobbyId)
+    {
+        if (mLobby != null &&
+            mLobby.LobbyId == lobbyId)
+        {
+            Close();
+        }
+    }
+
+    private void OnLobbyCreated(int clientIndex, string lobbyId, RuyiNetLobby lobby)
+    {
+        if (mLobby == null)
+        {
+            mLobby = lobby;
+        }
+    }
+
+    private void OnLobbyDestroyed(int clientIndex, string lobbyId)
+    {
+        if (mLobby != null &&
+            mLobby.LobbyId == lobbyId)
+        {
+            Close();
+        }
+    }
+
+    private void OnLobbyGameStarted(int clientIndex, string lobbyId, string connectionString)
+    {
+        if (mLobby != null &&
+            mLobby.LobbyId == lobbyId)
+        {
+            mConnectionString = connectionString;
+            if (RuyiNet.ActivePlayer.profileId != mLobby.OwnerPlayerId)
+            {
+                var networkManager = FindObjectOfType<MyNetworkManager>();
+                if (networkManager != null)
+                {
+                    networkManager.StartMatchMaker();
+                    networkManager.matchMaker.ListMatches(0, 20, "", false, 0, 0, OnListMatches);
+                }
+            }
+        }
+    }
+
+    private void OnLobbyOpened(int clientIndex, string lobbyId)
+    {
+        //  No-op
+    }
+
+    private void OnLobbyPlayerJoined(int clientIndex, string lobbyId, string playerId)
+    {
+        mLobby.MemberPlayerIds.Add(playerId);
+        UpdateLobbyInfo(mLobby);
+    }
+
+    private void OnLobbyPlayerLeft(int clientIndex, string lobbyId, string playerId)
+    {
+        mLobby.MemberPlayerIds.Remove(playerId);
+        UpdateLobbyInfo(mLobby);
+    }
+
+    RuyiNetLobby mLobby;
+    Dictionary<string, string> mPlayerIdsToLobbyIds;
+    string mConnectionString;
 }

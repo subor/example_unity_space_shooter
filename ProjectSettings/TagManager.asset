@@ -13,6 +13,7 @@ TagManager:
   - ProfileSummary
   - Shot
   - Loading
+  - StartGame
   layers:
   - Default
   - TransparentFX
