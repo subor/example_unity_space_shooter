@@ -155,7 +155,7 @@ pipeline {
 		stage('Pack'){
 			steps{
 				bat """
-					"${RUYI_DEV_ROOT}"\\RuyiDev.exe AppRunner --pack --appPath="${COOKED_ROOT}"
+					${RUYI_DEV_ROOT}\\RuyiDev.exe AppRunner --pack --appPath="${COOKED_ROOT}"
 				"""
 				//Rename & Copy runtime dependencies
 				bat """
