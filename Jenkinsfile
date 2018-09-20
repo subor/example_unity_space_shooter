@@ -142,7 +142,7 @@ pipeline {
 				//Cook
 				bat """
 					chcp ${WIN_CMD_ENCODING}
-					start /wait ${UE_ROOT.replaceAll('/','\\\\')}\\Unity.exe -quit -batchmode -projectPath=${DEMO_PROJECT_ROOT} -buildWindows64Player Pack\\space_shooter\\space_shooter.exe
+					start /wait ${UE_ROOT.replaceAll('/','\\\\')}\\Unity.exe -quit -batchmode -projectPath "${workspace}\\${DEMO_PROJECT_ROOT}\\" -buildWindows64Player Pack\\space_shooter\\space_shooter.exe
 				"""
 
 				codeSign()
