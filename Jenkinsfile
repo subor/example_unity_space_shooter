@@ -31,6 +31,8 @@ pipeline {
 		UE_ROOT = "C:/Jenkins/tools/Unity/Editor"
 		//Temp folder
 		TEMP_DIR = 'temp'
+		//Root directory for all build tools
+		WIN32_TOOLS = "c:/jenkins/tools"
 		//Ruyi SDK CPP folder
 		RUYI_SDK_CPP = "${TEMP_DIR}\\RuyiSDK.nf2.0"		
 		//RuyiSDKUnityCS Root
