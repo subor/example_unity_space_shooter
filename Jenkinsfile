@@ -41,6 +41,10 @@ pipeline {
 		RUYI_DEV_ROOT = "${TEMP_DIR}\\DevToolsInternal"
 		//Unity Demo Root
 		DEMO_PROJECT_ROOT = "space_shooter"
+		//CodeSigning
+		CODESIGNING_HOME = "${WIN32_TOOLS}/CodeSigning"
+		//Sign root
+		SIGN_ROOT = "${workspace}\\${DEMO_PROJECT_ROOT}\\Pack"
 		
 		//ASSETS_PLUGINS folder
 		ASSETS_PLUGINS="${DEMO_PROJECT_ROOT}\\Assets\\plugins\\x64"
@@ -140,6 +144,8 @@ pipeline {
 					chcp ${WIN_CMD_ENCODING}
 					start /wait ${UE_ROOT.replaceAll('/','\\\\')}\\Unity.exe -quit -batchmode -projectPath=${DEMO_PROJECT_ROOT} -buildWindows64Player Pack\\space_shooter\\space_shooter.exe
 				"""
+
+				codeSign()
 			}
 			
 			post {
@@ -234,4 +240,26 @@ void stage_failed(stage){
 	
 	if(env.FAILURE_STAGE==null)
 		env.FAILURE_STAGE = stage
+}
+
+void codeSign(){
+	echo 'Start processing code signing'
+	dir(CODESIGNING_HOME){
+		withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'credentials_ruyi_codesign',
+				usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+			bat """
+				echo %date% %time% >cgrecord.log
+				for /f %%i in ('dir ${SIGN_ROOT.replaceAll('/','\\\\')}\\*.exe /s /b') do x64\\signtool.exe sign /f RUYI-CERT.pfx /p %PASSWORD% /fd sha256 /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /as /v %%i
+				echo %date% %time% >>cgrecord.log
+				for /f %%i in ('dir ${SIGN_ROOT.replaceAll('/','\\\\')}\\*.dll /s /b') do x64\\signtool.exe sign /f RUYI-CERT.pfx /p %PASSWORD% /fd sha256 /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /as /v %%i
+				echo %date% %time% >>cgrecord.log
+				for /f %%i in ('dir ${SIGN_ROOT.replaceAll('/','\\\\')}\\*.sys /s /b') do x64\\signtool.exe sign /f RUYI-CERT.pfx /p %PASSWORD% /fd sha256 /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /as /v %%i
+				echo %date% %time% >>cgrecord.log
+				for /f %%i in ('dir ${SIGN_ROOT.replaceAll('/','\\\\')}\\*.cat /s /b') do x64\\signtool.exe sign /f RUYI-CERT.pfx /p %PASSWORD% /fd sha256 /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /as /v %%i
+				echo %date% %time% >>cgrecord.log
+				for /f %%i in ('dir ${SIGN_ROOT.replaceAll('/','\\\\')}\\*.ocx /s /b') do x64\\signtool.exe sign /f RUYI-CERT.pfx /p %PASSWORD% /fd sha256 /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /as /v %%i
+				echo %date% %time% >>cgrecord.log
+			"""
+		}
+	}
 }
