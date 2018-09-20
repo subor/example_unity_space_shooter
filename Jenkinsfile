@@ -8,6 +8,7 @@ pipeline {
 	
 	parameters {
 		booleanParam(name: 'CLEAN_BUILD', defaultValue: true, description: 'Options for doing a clean build when is true')
+		booleanParam(name: 'CODE_SIGN', defaultValue: true, description: 'Options to sign the build when is true')
 		string(name: 'REF_BUILD_NUMBER', defaultValue: '', description: 'Specified build number to copy dependencies(E.g.: 22, using latest build when empty)')
 		string(name: 'JOB_NAME', defaultValue: 'RUYI-Platform-CleanBuild', description: 'Specified job name to copy dependencies')
 		booleanParam(name: 'MAIL_ON_FAILED', defaultValue: true, description: 'Options for sending mail when failed')
@@ -146,8 +147,11 @@ pipeline {
 					chcp ${WIN_CMD_ENCODING}
 					start /wait ${UE_ROOT.replaceAll('/','\\\\')}\\Unity.exe -quit -batchmode -projectPath "${workspace}\\${DEMO_PROJECT_ROOT}\\" -buildWindows64Player Pack\\space_shooter\\space_shooter.exe
 				"""
-
-				codeSign()
+				script {
+					if (params.CODE_SIGN) {
+						codeSign()
+					}
+				}
 			}
 			
 			post {
