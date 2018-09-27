@@ -56,7 +56,7 @@ public class TutorialInfo : MonoBehaviour
     {
         lock (locker)
         {
-            
+            m_RuyiNet.mSDK.OverlayService.TakeScreenShot();
         }
         Debug.Log("OnScreenShot");
     }
