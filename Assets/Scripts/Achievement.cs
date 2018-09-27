@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+using Ruyi.SDK.Online;
+
 public class Achievement : Panel
 {
     [SerializeField] private Transform m_AchievementContentTrans;
@@ -13,7 +15,9 @@ public class Achievement : Panel
     {
         base.Open();
 
-        //ShowLoadingCircle();
+        ClearAllAchievements();
+
+        ShowLoadingCircle();
         CleanProfileData();
 
         GetAchievementList();
@@ -27,22 +31,61 @@ public class Achievement : Panel
 
     public void GetAchievementList()
     {
-
-        GameObject pnlAchievementGO = GameObject.Instantiate(m_PnlAchievementPrefab);
-
-        pnlAchievementGO.transform.SetParent(m_AchievementContentTrans);
-        pnlAchievementGO.GetComponentInChildren<Text>().text = "No Achievements";
+        RuyiNet.GamificationService.ReadAchievements(0, false, OnGetAchievementListFinish);
     }
 
     public void GetAwardedAchievementList()
     {
-        GameObject pnlAchievementGO = GameObject.Instantiate(m_PnlAchievementPrefab);
-
-        pnlAchievementGO.transform.SetParent(m_AwardedAchievementContentTrans);
-        pnlAchievementGO.GetComponentInChildren<Text>().text = "No Awarded Achievements";
+        RuyiNet.GamificationService.ReadAchievedAchievements(0, false, OnGetAchievementListFinish);
     }
 
-    private void OnGetAchievementListFinish() { }
+    private void OnGetAchievementListFinish(List<RuyiNetAchievement> achievements)
+    {
 
-    private void OnGetAwardedAchievementList() { }
+        if (null == achievements || 0 == achievements.Count)
+        {
+            GameObject pnlAchievementGO = GameObject.Instantiate(m_PnlAchievementPrefab);
+
+            pnlAchievementGO.transform.SetParent(m_AchievementContentTrans);
+            pnlAchievementGO.GetComponentInChildren<Text>().text = "No Achievements";
+        } else
+        {
+            for (int i = 0; i < achievements.Count; ++i)
+            {
+                GameObject pnlAchievementGO = GameObject.Instantiate(m_PnlAchievementPrefab);
+
+                pnlAchievementGO.transform.SetParent(m_AchievementContentTrans);
+                pnlAchievementGO.GetComponentInChildren<Text>().text = achievements[i].AchievementId + " " + achievements[i].Title;
+            }
+        }
+    }
+
+    private void OnGetAwardedAchievementList(List<RuyiNetAchievement> achievements)
+    {
+        if (null == achievements || 0 == achievements.Count)
+        {
+            GameObject pnlAchievementGO = GameObject.Instantiate(m_PnlAchievementPrefab);
+
+            pnlAchievementGO.transform.SetParent(m_AwardedAchievementContentTrans);
+            pnlAchievementGO.GetComponentInChildren<Text>().text = "No Awarded Achievements";
+        } else
+        {
+            for (int i = 0; i < achievements.Count; ++i)
+            {
+                GameObject pnlAchievementGO = GameObject.Instantiate(m_PnlAchievementPrefab);
+
+                pnlAchievementGO.transform.SetParent(m_AchievementContentTrans);
+                pnlAchievementGO.GetComponentInChildren<Text>().text = achievements[i].AchievementId + " " + achievements[i].Title;
+            }
+        }
+    }
+
+    private void ClearAllAchievements()
+    {
+        for (int i = 0; i < m_AchievementContentTrans.childCount; ++i)
+        {
+            m_AchievementContentTrans.GetChild(i).gameObject.SetActive(false);
+            GameObject.Destroy(m_AchievementContentTrans.GetChild(i).gameObject);
+        }
+    }
 }
