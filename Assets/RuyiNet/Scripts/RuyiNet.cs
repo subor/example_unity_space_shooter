@@ -2,11 +2,14 @@
 using Ruyi.SDK.Online;
 using System;
 using UnityEngine;
+using System.IO;
 
 public class RuyiNet : MonoBehaviour
 {
     public void Initialise(Action onInitialised)
     {
+        if (null == mSDK || null == mSDK.RuyiNetService) return;
+
         if (!string.IsNullOrEmpty(AppId))
         {
             if (!mSDK.RuyiNetService.Initialised)
@@ -49,16 +52,27 @@ public class RuyiNet : MonoBehaviour
 
     private void Awake()
     {
+        if (!Application.isEditor)
+        { ReadAppIDAndSecret(); }
+
         Console.SetOut(new DebugLogWriter());
 
         if (mSDK == null)
         {
-            mSDKContext = new RuyiSDKContext()
+            try
             {
-                endpoint = RuyiSDKContext.Endpoint.Console
-            };
+                mSDKContext = new RuyiSDKContext()
+                {
+                    endpoint = RuyiSDKContext.Endpoint.Console
+                };
 
-            mSDK = RuyiSDK.CreateInstance(mSDKContext);
+                mSDK = RuyiSDK.CreateInstance(mSDKContext);
+            }
+            catch (System.Exception e)
+            {
+                Exception = e.Message;
+                return;
+            }
         }
 
         if (mOnInitialised != null)
@@ -71,9 +85,51 @@ public class RuyiNet : MonoBehaviour
         }
     }
 
+    void ReadAppIDAndSecret()
+    {
+        string path = System.Environment.CurrentDirectory;
+
+        path += "\\BrainCloudInfo.txt";
+
+        FileInfo fInfo0 = new FileInfo(path);
+        string s = "";
+        if (fInfo0.Exists)
+        {
+            StreamReader r = new StreamReader(path);
+            s = r.ReadToEnd();
+            Debug.Log(s);
+        }
+
+        string seperator1 = "\n";
+        string seperator2 = ":";
+        string[] strDatas = s.Split(seperator1.ToCharArray());
+        foreach (string str_ in strDatas)
+        {
+            string[] tmp = str_.Split(seperator2.ToCharArray());
+
+            if (2 == tmp.Length)
+            {
+                if (tmp[0].Equals("AppId")) AppId = tmp[1];
+                else if (tmp[0].Equals("AppSecret")) AppSecret = tmp[1];
+                else { }
+            }
+        }
+    }
+
+    string Exception = "";
+    private void OnGUI()
+    {
+        GUIStyle style = new GUIStyle();
+        style.fontSize = 36;
+        GUI.Label(new Rect(400, 0, 500, 80), AppId, style);
+        GUI.Label(new Rect(400, 80, 500, 80), AppSecret, style);
+        GUI.Label(new Rect(400, 160, 500, 80), Exception, style);
+
+    }
+
     private void Update()
     {
-        mSDK.Update();
+        if (null != mSDK) mSDK.Update();
     }
 
     private void OnDestroy()
