@@ -24,19 +24,41 @@ public class TutorialInfo : MonoBehaviour
     void Start()
     {
         loading.SetActive(true);
-        var ruyiNet = FindObjectOfType<RuyiNet>();
-        ruyiNet.Initialise(OnRuyiNetInitialised);
+        m_RuyiNet = FindObjectOfType<RuyiNet>();
+        m_RuyiNet.Initialise(OnRuyiNetInitialised);
 
         //our input event is listener in sub-thread, in which you can't directly renderer UnityEngine Object (you can't use any UnityEngine-related object in sub-thread)
         //you can use middle values £¨int,float,string,etc,non-UnityEngine-ojbect-type£© to receive the RuyiSDK input value, then listen it in UnityEngine's main thread (Monobehaviour.update(), etc)
-        ruyiNet.Subscribe.Subscribe("service/" + ServiceIDs.USER_SERVICE_EXTERNAL.ToString().ToLower());
-        ruyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.UserServiceExternal.InputActionEvent>(RuyiInputStateChangeHandler);
+        m_RuyiNet.Subscribe.Subscribe("service/" + ServiceIDs.USER_SERVICE_EXTERNAL.ToString().ToLower());
+        m_RuyiNet.Subscribe.AddMessageHandler<Ruyi.SDK.UserServiceExternal.InputActionEvent>(RuyiInputStateChangeHandler);
     }
 
     //if use fixedupdate may lead to no response
     void Update()
     {
-        RuyiInputListener();      
+        RuyiInputListener();
+
+        ScreenShot();
+    }
+
+    RuyiNet m_RuyiNet = null;
+    private void ScreenShot()
+    {
+        if (Input.GetKeyUp(KeyCode.Q))
+        {
+            System.Threading.Thread thread = new System.Threading.Thread(OnScreenShot);
+            thread.Start();
+        }
+    }
+
+    private static readonly System.Object locker = new System.Object();
+    private void OnScreenShot()
+    {
+        lock (locker)
+        {
+            m_RuyiNet.mSDK.OverlayService.TakeScreenShot();
+        }
+        Debug.Log("OnScreenShot");
     }
 
     private void RuyiInputListener()

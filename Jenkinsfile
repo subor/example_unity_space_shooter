@@ -8,6 +8,7 @@ pipeline {
 	
 	parameters {
 		booleanParam(name: 'CLEAN_BUILD', defaultValue: true, description: 'Options for doing a clean build when is true')
+		booleanParam(name: 'CODE_SIGN', defaultValue: true, description: 'Options to sign the build when is true')
 		string(name: 'REF_BUILD_NUMBER', defaultValue: '', description: 'Specified build number to copy dependencies(E.g.: 22, using latest build when empty)')
 		string(name: 'JOB_NAME', defaultValue: 'RUYI-Platform-CleanBuild', description: 'Specified job name to copy dependencies')
 		booleanParam(name: 'MAIL_ON_FAILED', defaultValue: true, description: 'Options for sending mail when failed')
@@ -27,30 +28,34 @@ pipeline {
 	environment{
 		//Windows command prompt encoding(65001=UTF8;437=US.English;936=GBK)
 		WIN_CMD_ENCODING = '65001'
-		//Nuget Packages home
-		NUGET_PACKAGES = "c:/jenkins/packages"
 		//Unity Engine root
 		UE_ROOT = "C:/Jenkins/tools/Unity/Editor"
 		//Temp folder
 		TEMP_DIR = 'temp'
+		//Root directory for all build tools
+		WIN32_TOOLS = "c:/jenkins/tools"
 		//Ruyi SDK CPP folder
-		RUYI_SDK_CPP = "TEMP_DIR\\RuyiSDK.nf2.0"		
+		RUYI_SDK_CPP = "${TEMP_DIR}\\RuyiSDK.nf2.0"		
+		//RuyiSDKUnityCS Root
+		RuyiSDKUnityCS = "RuyiSDKUnityCS"
 		//Ruyi SDK DEMO folder
 		RUYI_SDK_DEMO = "${RuyiSDKUnityCS}\\jade\\sdk\\RuyiSDKUnity"
 		//Ruyi DevTools folder
-		RUYI_DEV_ROOT = "TEMP_DIR\\DevToolsInternal"
+		RUYI_DEV_ROOT = "${TEMP_DIR}\\DevToolsInternal"
 		//Unity Demo Root
 		DEMO_PROJECT_ROOT = "space_shooter"
+		//CodeSigning
+		CODESIGNING_HOME = "${WIN32_TOOLS}/CodeSigning"
+		//Sign root
+		SIGN_ROOT = "${workspace}\\${DEMO_PROJECT_ROOT}\\Pack"
 		
-		//RuyiSDKUnityCS Root
-		RuyiSDKUnityCS = "RuyiSDKUnityCS"
-        //ASSETS_PLUGINS folder
-        ASSETS_PLUGINS="${DEMO_PROJECT_ROOT}\\Assets\\plugins\\x64"
-        //ASSETS_SCRIPTS folder
-        ASSETS_SCRIPTS="${DEMO_PROJECT_ROOT}\\Assets\\RuyiNet\\Scripts"
+		//ASSETS_PLUGINS folder
+		ASSETS_PLUGINS="${DEMO_PROJECT_ROOT}\\Assets\\plugins\\x64"
+		//ASSETS_SCRIPTS folder
+		ASSETS_SCRIPTS="${DEMO_PROJECT_ROOT}\\Assets\\RuyiNet\\Scripts"
 		
 		//Unity packed target
-		COOKED_ROOT = "${DEMO_PROJECT_ROOT}/Pack"
+		COOKED_ROOT = "${DEMO_PROJECT_ROOT}\\Pack"
 		//Archive root
 		ARCHIVE_ROOT = 'archives'
 		//File path for saving commit id
@@ -68,7 +73,7 @@ pipeline {
 					if(env.BRANCH_NAME == null && params.CLEAN_BUILD){
 						deleteDir()
 					}else{
-						step([$class: 'WsCleanup', patterns: [[pattern: "**/Binaries/**/**", type: 'INCLUDE'],[pattern: "**/Pack/RuyiSDKDemo/**/**", type: 'INCLUDE'],[pattern: "**/Source/RuyiSDKDemo/include/**/**", type: 'INCLUDE'],[pattern: "**/.git/*.lock", type: 'INCLUDE']]])
+						step([$class: 'WsCleanup', patterns: [[pattern: "**/Pack/space_shooter/**/**", type: 'INCLUDE'],[pattern: "**/.git/*.lock", type: 'INCLUDE']]])
 					}
 									
 					checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches:  scm.branches,
@@ -115,12 +120,10 @@ pipeline {
 					if(params.REF_BUILD_NUMBER?.trim())
 						sel = specific("${params.REF_BUILD_NUMBER}")
 						
-					//step([$class:'CopyArtifact',filter:'RuyiSDK.nf2.0/**/*,DevTools_Internal/**/*',target:"${TEMP_DIR}",projectName: "${jobName}",selector: sel])
-					//step([$class:'CopyArtifact',filter:'RuyiSDK.nf2.0/**/*,DevToolsInternal/**/*', projectName: 'RUYI-Platform-CleanBuild', selector: sel, target: '${TEMP_DIR}'])
-                    step([$class:'CopyArtifact',filter:'RuyiSDK.nf2.0/**/*,DevToolsInternal/**/*', projectName: 'RUYI-Platform-CleanBuild', selector: sel, target:"${TEMP_DIR}"])
+					step([$class:'CopyArtifact',filter:'RuyiSDK.nf2.0/**/*,DevToolsInternal/**/*', projectName: 'RUYI-Platform-CleanBuild', selector: sel, target:"${TEMP_DIR}"])
 					bat """
 						xcopy ${TEMP_DIR}\\RuyiSDK.nf2.0\\* ${ASSETS_PLUGINS}\\* /s /i /y
-						xcopy RuyiSDKUnityCS\\jade\\sdk\\RuyiSDKUnity\\* ${ASSETS_SCRIPTS}\\* /s /i /y
+						xcopy ${RUYI_SDK_DEMO}\\* ${ASSETS_SCRIPTS}\\* /s /i /y
 						
 					"""
 				}
@@ -142,9 +145,13 @@ pipeline {
 				//Cook
 				bat """
 					chcp ${WIN_CMD_ENCODING}
-					start /wait ${UE_ROOT.replaceAll('/','\\\\')}\\Unity.exe -quit -batchmode -projectPath=${DEMO_PROJECT_ROOT} -executeMethod BuildScript.PerformBuild -buildWindows64Player Pack\\space_shooter\\space_shooter.exe
+					start /wait ${UE_ROOT.replaceAll('/','\\\\')}\\Unity.exe -quit -batchmode -projectPath "${workspace}\\${DEMO_PROJECT_ROOT}\\" -buildWindows64Player Pack\\space_shooter\\space_shooter.exe
 				"""
-
+				script {
+					if (params.CODE_SIGN) {
+						codeSign()
+					}
+				}
 			}
 			
 			post {
@@ -159,8 +166,8 @@ pipeline {
 			
 		stage('Pack'){
 			steps{
-            	bat """
-					temp\\DevToolsInternal\\RuyiDev.exe AppRunner --pack --appPath="${COOKED_ROOT}"
+				bat """
+					${RUYI_DEV_ROOT}\\RuyiDev.exe AppRunner --pack --appPath="${COOKED_ROOT}"
 				"""
 				//Rename & Copy runtime dependencies
 				bat """
@@ -239,4 +246,26 @@ void stage_failed(stage){
 	
 	if(env.FAILURE_STAGE==null)
 		env.FAILURE_STAGE = stage
+}
+
+void codeSign(){
+	echo 'Start processing code signing'
+	dir(CODESIGNING_HOME){
+		withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'credentials_ruyi_codesign',
+				usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+			bat """
+				echo %date% %time% >cgrecord.log
+				for /f %%i in ('dir ${SIGN_ROOT.replaceAll('/','\\\\')}\\*.exe /s /b') do x64\\signtool.exe sign /f RUYI-CERT.pfx /p %PASSWORD% /fd sha256 /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /as /v %%i
+				echo %date% %time% >>cgrecord.log
+				for /f %%i in ('dir ${SIGN_ROOT.replaceAll('/','\\\\')}\\*.dll /s /b') do x64\\signtool.exe sign /f RUYI-CERT.pfx /p %PASSWORD% /fd sha256 /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /as /v %%i
+				echo %date% %time% >>cgrecord.log
+				for /f %%i in ('dir ${SIGN_ROOT.replaceAll('/','\\\\')}\\*.sys /s /b') do x64\\signtool.exe sign /f RUYI-CERT.pfx /p %PASSWORD% /fd sha256 /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /as /v %%i
+				echo %date% %time% >>cgrecord.log
+				for /f %%i in ('dir ${SIGN_ROOT.replaceAll('/','\\\\')}\\*.cat /s /b') do x64\\signtool.exe sign /f RUYI-CERT.pfx /p %PASSWORD% /fd sha256 /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /as /v %%i
+				echo %date% %time% >>cgrecord.log
+				for /f %%i in ('dir ${SIGN_ROOT.replaceAll('/','\\\\')}\\*.ocx /s /b') do x64\\signtool.exe sign /f RUYI-CERT.pfx /p %PASSWORD% /fd sha256 /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /as /v %%i
+				echo %date% %time% >>cgrecord.log
+			"""
+		}
+	}
 }
