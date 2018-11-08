@@ -13,6 +13,7 @@
 				label:"main test activity",
 				description:"@antestapp",
 				icon:"logo.png"
+				
 			}
 		]
 	},
