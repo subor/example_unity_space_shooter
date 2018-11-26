@@ -1,5 +1,5 @@
 {
-	appID: "com.XXX.space_shooter",
+	appID: "18258",
 	version:"1.0.0.0",
 	use_sdk:{
 		minSdkVersion : "1.0.0.0"
@@ -14,7 +14,7 @@
 		],
 		platform:[
 			"RuyiConsole",
-			"Windows",
+			"Windows"
 		],
 		size:12580,
 		languages:[
@@ -22,33 +22,33 @@
 				languageCode:"en-US",
 				uiInterface:true,
 				fullAudio:true,
-				subtitles:true,
+				subtitles:true
 			},
 			{
 				languageCode:"ja-JP",
 				uiInterface:true,
 				fullAudio:false,
-				subtitles:true,
+				subtitles:true
 			},
 			{
 				languageCode:"de-DE",
 				uiInterface:true,
 				fullAudio:false,
-				subtitles:false,
-			},
+				subtitles:false
+			}
 		],
 		
 		activity:[
 			{
 				name:"main",
 				exePath:"space_shooter/space_shooter.exe",
-				description:"@antestapp",
+				description:"@antestapp"
 			}
-		],
+		]
 	},
 	use_permissions:[
 		{
 			name:"jade.permission.ACHIEVEMENT"
 		}
-	],
+	]
 }
