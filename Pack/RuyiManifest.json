@@ -1,13 +1,13 @@
 {
-	appID: "com.XXX.space_shooter",
+	appID: "60030",
 	version:"1.0.0.0",
 	use_sdk:{
 		minSdkVersion : "1.0.0.0"
 	},
 	application:	{
 		name:"@com.XXX.space_shooter",
-		icon:"bluetooth.png",
-		description:"@antestapp",
+		icon:"icon.png",
+		description:"@description",
 		properties:[
 			"SinglePlayer",
 			"RuyiAchievements"
@@ -41,8 +41,8 @@
 		activity:[
 			{
 				name:"main",
-				exePath:"space_shooter/space_shooter.exe",
-				description:"@antestapp",
+				exePath:"space_shooter/SpaceShooter.exe",
+				description:"@description",
 			}
 		],
 	},
