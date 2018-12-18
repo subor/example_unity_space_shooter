@@ -1,54 +1,53 @@
 {
-	appID: "18258",
-	version:"1.0.0.0",
-	use_sdk:{
-		minSdkVersion : "1.0.0.0"
+	"appID": "18258",
+	"version":"1.0.0.0",
+	"use_sdk":{
+		"minSdkVersion" : "1.0.0.0"
 	},
-	application:	{
-		name:"@com.XXX.space_shooter",
-		icon:"bluetooth.png",
-		description:"@antestapp",
-		properties:[
+	"application":	{
+		"name":"@com.XXX.space_shooter",
+		"icon":"bluetooth.png",
+		"description":"@antestapp",
+		"properties":[
 			"SinglePlayer",
 			"RuyiAchievements"
 		],
-		platform:[
+		"platform":[
 			"RuyiConsole",
 			"Windows"
 		],
-		size:12580,
-		languages:[
+		"size":12580,
+		"languages":[
 			{
-				languageCode:"en-US",
-				uiInterface:true,
-				fullAudio:true,
-				subtitles:true
+				"languageCode":"en-US",
+				"uiInterface":true,
+				"fullAudio":true,
+				"subtitles":true
 			},
 			{
-				languageCode:"ja-JP",
-				uiInterface:true,
-				fullAudio:false,
-				subtitles:true
+				"languageCode":"ja-JP",
+				"uiInterface":true,
+				"fullAudio":false,
+				"subtitles":true
 			},
 			{
-				languageCode:"de-DE",
-				uiInterface:true,
-				fullAudio:false,
-				subtitles:false
+				"languageCode":"de-DE",
+				"uiInterface":true,
+				"fullAudio":false,
+				"subtitles":false
 			}
 		],
-		
-		activity:[
+		"activity":[
 			{
-				name:"main",
-				exePath:"space_shooter/space_shooter.exe",
-				description:"@antestapp"
+				"name":"main",
+				"exePath":"space_shooter/space_shooter.exe",
+				"description":"@antestapp"
 			}
 		]
 	},
-	use_permissions:[
+	"use_permissions":[
 		{
-			name:"jade.permission.ACHIEVEMENT"
+			"name":"jade.permission.ACHIEVEMENT"
 		}
 	]
 }
