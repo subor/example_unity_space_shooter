@@ -6,7 +6,7 @@
 	},
 	"application":	{
 		"name":"@com.XXX.space_shooter",
-		"icon":"bluetooth.png",
+		"icon":"SpaceShooter.png",
 		"description":"@antestapp",
 		"properties":[
 			"SinglePlayer",
