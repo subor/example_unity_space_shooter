@@ -1,12 +1,25 @@
 using Ruyi.Layer0;
+using Ruyi.Logging;
 using Ruyi.SDK.Online;
 using UnityEngine;
 
 // Hi! This script presents the overlay info for our tutorial content, linking you back to the relevant page.
 public class TutorialInfo : MonoBehaviour 
 {
-	// store the GameObject which renders the overlay info
-	public GameObject overlay;
+    public class LogForwarder : IRuyiLogger
+    {
+        public void Log(LoggerMessage msg)
+        {
+            Debug.Log(msg);
+        }
+
+        public void SetLogLevel(LogLevel lv)
+        {
+        }
+    }
+
+    // store the GameObject which renders the overlay info
+    public GameObject overlay;
     public GameObject loading;
 
     [SerializeField]
@@ -23,8 +36,26 @@ public class TutorialInfo : MonoBehaviour
 
     void Start()
     {
+        // forward the sdk logs to Debug.Log
+        Ruyi.Logging.Logger.AddRuyiLogger(new LogForwarder());
+
         loading.SetActive(true);
         m_RuyiNet = FindObjectOfType<RuyiNet>();
+
+        // RuyiNet is copied from another project, guid may change, add a new one if none exists.
+        if(m_RuyiNet == null)
+        {
+            m_RuyiNet = gameObject.AddComponent<RuyiNet>();
+        }
+
+        // init it with ruyi internal server's app id/secret, if none exists.
+        // FIXME: replace it with your own app id and app secret.
+        if(string.IsNullOrEmpty(m_RuyiNet.AppId) || string.IsNullOrEmpty(m_RuyiNet.AppSecret))
+        {
+            m_RuyiNet.AppId = "30010";
+            m_RuyiNet.AppSecret = "bea3936f-ac25-466e-8b61-fcf89cc7efdf";
+        }
+
         m_RuyiNet.Initialise(OnRuyiNetInitialised);
 
         //our input event is listener in sub-thread, in which you can't directly renderer UnityEngine Object (you can't use any UnityEngine-related object in sub-thread)
@@ -211,6 +242,7 @@ public class TutorialInfo : MonoBehaviour
 
     private void OnRuyiNetInitialised()
     {
+        Debug.Log("OnRuyiNetInitialised");
         var ruyiNet = FindObjectOfType<RuyiNet>();
         ruyiNet.ForEachPlayer((int index, RuyiNetProfile profile) =>
         {
