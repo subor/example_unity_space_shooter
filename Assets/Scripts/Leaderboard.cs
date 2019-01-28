@@ -64,6 +64,9 @@ public class Leaderboard : Panel
 
     private void OnGetLeadboardPageFinish(RuyiNetLeaderboardPage page)
     {
+        if (page == null || page.Entries == null)
+            return;
+
         for (int i = 0; i < page.Entries.Count; ++i)
         {
             GameObject pnlLeaderboardEntryGO = GameObject.Instantiate(m_PnlLeaderboardEntryPrefab);
