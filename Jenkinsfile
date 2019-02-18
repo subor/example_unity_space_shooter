@@ -56,10 +56,8 @@ pipeline {
 		
 		//Unity packed target
 		COOKED_ROOT = "${DEMO_PROJECT_ROOT}\\Pack"
-		//Archive root
-		ARCHIVE_ROOT = 'archives'
 		//File path for saving commit id
-		COMMIT_ID_FILE = "${ARCHIVE_ROOT}\\commit-id"
+		COMMIT_ID_FILE = "${COOKED_ROOT}\\commit-id"
 		//Mail recipient on failed
 		MAIL_RECIPIENT = 'sw-engr@playruyi.com,cc:chris.zhang@playruyi.com'
 	}
@@ -163,43 +161,19 @@ pipeline {
 				}
 			}
 		}
-			
-		stage('Pack'){
-			steps{
-				bat """
-					${RUYI_DEV_ROOT}\\RuyiDev.exe AppRunner --pack --appPath="${COOKED_ROOT}"
-				"""
-				//Rename & Copy runtime dependencies
-				bat """
-					ren ${DEMO_PROJECT_ROOT.replaceAll('/','\\\\')}\\Pack.zip space_shooter.zip
-				"""
-			}
-			
-			post {
-				success {
-					stage_success env.STAGE_NAME
-				}
-				failure {
-					stage_failed env.STAGE_NAME
-				}
-			}
-		}
-		
 
 		stage('Archive'){
 			steps{
 				script{
 					bat """
-						md ${ARCHIVE_ROOT}
 						pushd ${DEMO_PROJECT_ROOT}
 						git rev-parse HEAD > ${workspace.replaceAll('/','\\\\')}\\${COMMIT_ID_FILE}
 						popd
-						xcopy ${DEMO_PROJECT_ROOT}\\space_shooter.zip ${ARCHIVE_ROOT} /i /y
 						exit 0
 					"""
 
 					echo 'Start archiving artifacts ...'
-					archiveArtifacts artifacts: "${ARCHIVE_ROOT}/**/**", onlyIfSuccessful: true
+					archiveArtifacts artifacts: "${COOKED_ROOT}/**/**", onlyIfSuccessful: true
 				}
 			}
 			
@@ -215,10 +189,6 @@ pipeline {
 				
 		stage('Finalize'){
 			steps{
-				dir(ARCHIVE_ROOT){
-					deleteDir()
-				}
-
 				dir(TEMP_DIR){
 					deleteDir()
 				}
