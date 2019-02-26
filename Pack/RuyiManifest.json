@@ -5,9 +5,9 @@
 		"MinSdkVersion" : "1.0.0.0"
 	},
 	"Application":	{
-		"Name":"@com.XXX.space_shooter",
-		"Icon":"SpaceShooter.png",
-		"Description":"@antestapp",
+		"Name":"@com.playruyi.space_shooter",
+		"Icon":"icon.png",
+		"Description":"@description",
 		"Properties":[
 			"SinglePlayer",
 			"RuyiAchievements"
@@ -41,7 +41,7 @@
 			{
 				"Name":"main",
 				"ExePath":"space_shooter/SpaceShooter.exe",
-				"Description":"@antestapp"
+				"Description":"@description"
 			}
 		]
 	},
