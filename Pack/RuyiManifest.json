@@ -1,53 +1,53 @@
 {
-	"appID": "18258",
-	"version":"1.0.0.0",
-	"use_sdk":{
-		"minSdkVersion" : "1.0.0.0"
+	"AppId": "18258",
+	"Version":"1.0.0.0",
+	"Sdk":{
+		"MinSdkVersion" : "1.0.0.0"
 	},
-	"application":	{
-		"name":"@com.XXX.space_shooter",
-		"icon":"SpaceShooter.png",
-		"description":"@antestapp",
-		"properties":[
+	"Application":	{
+		"Name":"@com.XXX.space_shooter",
+		"Icon":"SpaceShooter.png",
+		"Description":"@antestapp",
+		"Properties":[
 			"SinglePlayer",
 			"RuyiAchievements"
 		],
-		"platform":[
+		"Platform":[
 			"RuyiConsole",
 			"Windows"
 		],
-		"size":12580,
-		"languages":[
+		"Size":12580,
+		"Languages":[
 			{
-				"languageCode":"en-US",
-				"uiInterface":true,
-				"fullAudio":true,
-				"subtitles":true
+				"LanguageCode":"en-US",
+				"Ui":true,
+				"FullAudio":true,
+				"Subtitles":true
 			},
 			{
-				"languageCode":"ja-JP",
-				"uiInterface":true,
-				"fullAudio":false,
-				"subtitles":true
+				"LanguageCode":"ja-JP",
+				"Ui":true,
+				"FullAudio":false,
+				"Subtitles":true
 			},
 			{
-				"languageCode":"de-DE",
-				"uiInterface":true,
-				"fullAudio":false,
-				"subtitles":false
+				"LanguageCode":"de-DE",
+				"Ui":true,
+				"FullAudio":false,
+				"Subtitles":false
 			}
 		],
-		"activity":[
+		"Activity":[
 			{
-				"name":"main",
-				"exePath":"space_shooter/space_shooter.exe",
-				"description":"@antestapp"
+				"Name":"main",
+				"ExePath":"space_shooter/SpaceShooter.exe",
+				"Description":"@antestapp"
 			}
 		]
 	},
-	"use_permissions":[
+	"Permissions":[
 		{
-			"name":"jade.permission.ACHIEVEMENT"
+			"Name":"jade.permission.ACHIEVEMENT"
 		}
 	]
 }
